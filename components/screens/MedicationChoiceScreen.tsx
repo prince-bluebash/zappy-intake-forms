@@ -263,8 +263,8 @@ const ImageWithFallback = ({
 const deriveMedicationIdentity = (entry: ConsultationMedicationEntry) => {
   const details = entry?.medication || {};
   const name =
+  (typeof (details as any).title === 'string' && (details as any).title.trim()) ||
     (typeof (details as any).name === 'string' && (details as any).name.trim()) ||
-    (typeof (details as any).title === 'string' && (details as any).title.trim()) ||
     'Medication';
   const id = (typeof (details as any).id === 'string' && (details as any).id.trim()) || name;
   const description = (typeof (details as any).description === 'string' && (details as any).description.trim()) || '';

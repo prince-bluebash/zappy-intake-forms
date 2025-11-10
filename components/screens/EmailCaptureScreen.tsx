@@ -730,7 +730,7 @@ const EmailCaptureScreen: React.FC<EmailCaptureScreenProps> = ({
                 <span className="text-xs leading-relaxed text-neutral-600 group-hover:text-neutral-700 transition-colors">
                   I agree to the{" "}
                   <a
-                    href="https://zappyhealth.com/terms"
+                    href="https://zappyhealth.com/termsofservice"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#00A896] hover:underline"
