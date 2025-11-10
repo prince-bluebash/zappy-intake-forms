@@ -122,7 +122,7 @@ export default function PlanSelectionOnly({
   // Auto-select plan if only one plan is available and no plan is currently selected
   useEffect(() => {
     if (plans.length === 0 || loading) return;
-    
+
     const activePlans = plans.filter((plan) => plan.is_active === true);
     // Only auto-select if exactly one plan and no plan is currently selected
     if (activePlans.length === 1 && !selectedPlanId) {
@@ -297,29 +297,29 @@ export default function PlanSelectionOnly({
                     )}
                   </div> */}
                   {features.length > 0 && (
-                        <div className="space-y-2">
-                          {/* <p className="text-xs sm:text-sm font-medium text-[#00A896] uppercase tracking-wide">
+                    <div className="space-y-2">
+                      {/* <p className="text-xs sm:text-sm font-medium text-[#00A896] uppercase tracking-wide">
                             What&apos;s included
                           </p> */}
-                          {features.slice(0, 2).map((feature, idx) => (
-                            <motion.div
-                              key={`${plan.id}-feature-${idx}`}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: idx * 0.05 }}
-                              className="flex items-start gap-2 text-xs sm:text-sm text-neutral-700"
-                            >
-                              <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#00A896] to-[#E0F5F3] flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <Check
-                                  className="w-2.5 h-2.5 text-white"
-                                  strokeWidth={3}
-                                />
-                              </div>
-                              <span>{feature}</span>
-                            </motion.div>
-                          ))}
-                        </div>
-                      )}
+                      {features.slice(0, 2).map((feature, idx) => (
+                        <motion.div
+                          key={`${plan.id}-feature-${idx}`}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className="flex items-start gap-2 text-xs sm:text-sm text-neutral-700"
+                        >
+                          <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#00A896] to-[#E0F5F3] flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <Check
+                              className="w-2.5 h-2.5 text-white"
+                              strokeWidth={3}
+                            />
+                          </div>
+                          <span>{feature}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Discount Badge */}
                   {plan.discount && plan.discount > 0 && (
@@ -340,67 +340,86 @@ export default function PlanSelectionOnly({
                     </div>
                   )}
 
-                  {isSelected && requiresGoal && (
-                    <div className="mt-4 pt-4 border-t border-[#00A896]/10">
-                      <p className="text-sm text-neutral-700 mb-3">
-                        Choose your program goal:{" "}
-                        <span className="text-neutral-600">
-                          Maintenance keeps your dose steady. Escalation
-                          increases it over the program when clinically
-                          appropriate.
-                        </span>
-                      </p>
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        {[
-                          { value: "maintenance", label: "Maintenance" },
-                          { value: "escalation", label: "Escalation" },
-                        ].map((option) => {
-                          const optionSelected = currentGoal === option.value;
-                          return (
-                            <button
-                              key={`${plan.id}-${option.value}`}
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                onPlanGoalChange?.(option.value);
-                              }}
-                              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 ${
-                                optionSelected
-                                  ? "bg-[#00A896] text-white shadow-md"
-                                  : "bg-gray-50 text-neutral-700 hover:bg-gray-100 border border-gray-200"
-                              }`}
-                            >
-                              {optionSelected && (
-                                <Check className="w-4 h-4" strokeWidth={3} />
-                              )}
-                              <span className="text-sm font-medium">
-                                {option.label}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
+                  {/* Features List - Expanded when selected */}
+                  {isSelected && (features.length > 0 || offers.length > 0) && (
+                    <AnimatePresence>
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden mt-4 pt-4 border-t border-[#00A896]/10"
+                      >
+                        <div className="space-y-4">
+                          {extraTags.length > 0 && (
+                            <div className="space-y-2">
+                              <p className="text-xs sm:text-sm font-medium text-neutral-500 uppercase tracking-wide">
+                                Highlights
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {extraTags.map((tagLabel, tagIndex) => (
+                                  <span
+                                    key={`${plan.id}-tag-extra-${tagIndex}`}
+                                    className="inline-flex items-center gap-1 rounded-full bg-[#00A896]/10 border border-[#00A896]/20 px-2.5 py-1 text-xs font-medium text-[#00A896]"
+                                  >
+                                    <Tag className="w-3.5 h-3.5" />
+                                    {tagLabel}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
 
-                  {/* {!isSelected && displayFeatures.length > 0 && (
-                    <div className="mt-4 space-y-1.5">
-                      {displayFeatures.map((feature, idx) => (
-                        <div
-                          key={`${plan.id}-feature-preview-${idx}`}
-                          className="flex items-start gap-2 text-xs sm:text-sm text-neutral-600"
-                        >
-                          <div className="w-4 h-4 rounded-full bg-[#00A896]/10 flex items-center justify-center mt-0.5 flex-shrink-0">
-                            <Check
-                              className="w-2.5 h-2.5 text-[#00A896]"
-                              strokeWidth={3}
-                            />
-                          </div>
-                          <span>{feature}</span>
+                          {features.length > 2 && (
+                            <div className="space-y-2">
+                              {/* <p className="text-xs sm:text-sm font-medium text-[#00A896] uppercase tracking-wide">
+                                What&apos;s included
+                              </p> */}
+                              {features.slice(2).map((feature, idx) => (
+                                <motion.div
+                                  key={`${plan.id}-feature-${idx}`}
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: idx * 0.05 }}
+                                  className="flex items-start gap-2 text-xs sm:text-sm text-neutral-700"
+                                >
+                                  <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#00A896] to-[#E0F5F3] flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <Check
+                                      className="w-2.5 h-2.5 text-white"
+                                      strokeWidth={3}
+                                    />
+                                  </div>
+                                  <span>{feature}</span>
+                                </motion.div>
+                              ))}
+                            </div>
+                          )}
+
+                          {offers.length > 0 && (
+                            <div className="space-y-2">
+                              {/* <p className="text-xs sm:text-sm font-medium text-[#FF6B6B] uppercase tracking-wide">
+                                Special perks
+                              </p> */}
+                              {offers.map((offer, idx) => (
+                                <motion.div
+                                  key={`${plan.id}-offer-${idx}`}
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: idx * 0.05 + 0.1 }}
+                                  className="flex items-start gap-2 text-xs sm:text-sm text-neutral-700"
+                                >
+                                  <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#FF9A7F] flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <Sparkles className="w-2.5 h-2.5 text-white" />
+                                  </div>
+                                  <span>{offer}</span>
+                                </motion.div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  )} */}
+                      </motion.div>
+                    </AnimatePresence>
+                  )}
                 </div>
 
                 {/* Pricing Section - right-aligned on desktop, full-width on mobile */}
@@ -435,85 +454,46 @@ export default function PlanSelectionOnly({
                 </div>
               </div>
 
-              {/* Features List - Expanded when selected */}
-              {isSelected && (features.length > 0 || offers.length > 0) && (
-                <AnimatePresence>
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden mt-4 pt-4 border-t border-[#00A896]/10"
-                  >
-                    <div className="space-y-4">
-                      {extraTags.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs sm:text-sm font-medium text-neutral-500 uppercase tracking-wide">
-                            Highlights
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {extraTags.map((tagLabel, tagIndex) => (
-                              <span
-                                key={`${plan.id}-tag-extra-${tagIndex}`}
-                                className="inline-flex items-center gap-1 rounded-full bg-[#00A896]/10 border border-[#00A896]/20 px-2.5 py-1 text-xs font-medium text-[#00A896]"
-                              >
-                                <Tag className="w-3.5 h-3.5" />
-                                {tagLabel}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {features.length > 2 && (
-                        <div className="space-y-2">
-                          {/* <p className="text-xs sm:text-sm font-medium text-[#00A896] uppercase tracking-wide">
-                            What&apos;s included
-                          </p> */}
-                          {features.slice(2).map((feature, idx) => (
-                            <motion.div
-                              key={`${plan.id}-feature-${idx}`}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: idx * 0.05 }}
-                              className="flex items-start gap-2 text-xs sm:text-sm text-neutral-700"
-                            >
-                              <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#00A896] to-[#E0F5F3] flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <Check
-                                  className="w-2.5 h-2.5 text-white"
-                                  strokeWidth={3}
-                                />
-                              </div>
-                              <span>{feature}</span>
-                            </motion.div>
-                          ))}
-                        </div>
-                      )}
-
-                      {offers.length > 0 && (
-                        <div className="space-y-2">
-                          {/* <p className="text-xs sm:text-sm font-medium text-[#FF6B6B] uppercase tracking-wide">
-                            Special perks
-                          </p> */}
-                          {offers.map((offer, idx) => (
-                            <motion.div
-                              key={`${plan.id}-offer-${idx}`}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: idx * 0.05 + 0.1 }}
-                              className="flex items-start gap-2 text-xs sm:text-sm text-neutral-700"
-                            >
-                              <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#FF9A7F] flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <Sparkles className="w-2.5 h-2.5 text-white" />
-                              </div>
-                              <span>{offer}</span>
-                            </motion.div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
+              {isSelected && requiresGoal && (
+                <div className="mt-4 pt-4 border-t border-[#00A896]/10">
+                  <p className="text-sm text-neutral-700 mb-3">
+                    Choose your program goal:{" "}
+                    <span className="text-neutral-600">
+                      Maintenance keeps your dose steady. Escalation increases
+                      it over the program when clinically appropriate.
+                    </span>
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    {[
+                      { value: "maintenance", label: "Maintenance" },
+                      { value: "escalation", label: "Escalation" },
+                    ].map((option) => {
+                      const optionSelected = currentGoal === option.value;
+                      return (
+                        <button
+                          key={`${plan.id}-${option.value}`}
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onPlanGoalChange?.(option.value);
+                          }}
+                          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 ${
+                            optionSelected
+                              ? "bg-[#00A896] text-white shadow-md"
+                              : "bg-gray-50 text-neutral-700 hover:bg-gray-100 border border-gray-200"
+                          }`}
+                        >
+                          {optionSelected && (
+                            <Check className="w-4 h-4" strokeWidth={3} />
+                          )}
+                          <span className="text-sm font-medium">
+                            {option.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
             </motion.button>
           );
