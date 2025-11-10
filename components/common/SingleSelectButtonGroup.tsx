@@ -7,12 +7,14 @@ interface SingleSelectButtonGroupProps {
   options: Option[];
   selectedValue?: string;
   onSelect: (value: string) => void;
+  disabled?: boolean;
 }
 
 export default function SingleSelectButtonGroup({
   options,
   selectedValue,
   onSelect,
+  disabled = false,
 }: SingleSelectButtonGroupProps) {
   const [showAutoAdvanceHint, setShowAutoAdvanceHint] = useState(false);
 
@@ -45,11 +47,14 @@ export default function SingleSelectButtonGroup({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.06 + Math.random() * 0.02, duration: 0.3 }}
-            onClick={() => handleSelect(option.value)}
-            whileTap={{ scale: 0.98 }}
-            whileHover={isSelected ? { y: -2 } : {}}
+            onClick={() => !disabled && handleSelect(option.value)}
+            disabled={disabled}
+            whileTap={disabled ? {} : { scale: 0.98 }}
+            whileHover={disabled ? {} : (isSelected ? { y: -2 } : {})}
             className={`option-button w-full py-3 sm:py-[18px] px-4 sm:px-6 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 text-left group relative overflow-hidden focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0D9488]/20 ${
-              isSelected
+              disabled
+                ? 'border-[#E8E8E8] bg-gray-100 cursor-not-allowed opacity-60'
+                : isSelected
                 ? 'border-[#1a7f72] bg-[#e6f3f2] shadow-md'
                 : 'border-[#E8E8E8] bg-white hover:border-[#1a7f72]/30 hover:shadow-md hover:scale-[1.02] shadow-sm'
             }`}

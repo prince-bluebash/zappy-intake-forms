@@ -1,4 +1,4 @@
-import moment from 'moment';
+import { parseISO, isValid, format } from 'date-fns';
 import { apiClient } from './api';
 
 export interface PatientData {
@@ -146,27 +146,38 @@ export const fetchPatientData = async (token: string): Promise<PatientData | nul
 
 /**
  * Map patient data from API response to form answers
+ * Returns both the answers and a set of field IDs that were populated from API
  */
-export const mapPatientDataToFormAnswers = (patientData: PatientData): Record<string, any> => {
+export const mapPatientDataToFormAnswers = (patientData: PatientData): {
+  answers: Record<string, any>;
+  apiPopulatedFields: Set<string>;
+} => {
   const { patient } = patientData;
   const answers: Record<string, any> = {};
+  const apiPopulatedFields = new Set<string>();
 
   // Email
   if (patient.email) {
     answers.email = patient.email.toLowerCase().trim();
+    apiPopulatedFields.add('email');
   }
 
   // Name fields
   if (patient.first_name) {
     answers.first_name = patient.first_name;
     answers.account_firstName = patient.first_name;
+    apiPopulatedFields.add('first_name');
+    apiPopulatedFields.add('account_firstName');
   }
   if (patient.last_name) {
     answers.last_name = patient.last_name;
     answers.account_lastName = patient.last_name;
+    apiPopulatedFields.add('last_name');
+    apiPopulatedFields.add('account_lastName');
   }
   if (patient.profile?.middleName) {
     answers.middle_name = patient.profile.middleName;
+    apiPopulatedFields.add('middle_name');
   }
 
   // Phone
@@ -176,11 +187,14 @@ export const mapPatientDataToFormAnswers = (patientData: PatientData): Record<st
     const cleanPhone = phone.replace(/\D/g, '');
     answers.phone = cleanPhone;
     answers.account_phone = cleanPhone;
+    apiPopulatedFields.add('phone');
+    apiPopulatedFields.add('account_phone');
   }
 
   // Notification consent
   if (typeof patient.notification_consent === 'boolean') {
     answers.notification_consent = patient.notification_consent;
+    apiPopulatedFields.add('notification_consent');
   }
 
   // Address
@@ -189,25 +203,36 @@ export const mapPatientDataToFormAnswers = (patientData: PatientData): Record<st
     if (addr.street) {
       answers.address_line1 = addr.street;
       answers.shipping_address = addr.street;
+      apiPopulatedFields.add('address_line1');
+      apiPopulatedFields.add('shipping_address');
     }
     if (addr.unit) {
       answers.address_line2 = addr.unit;
+      apiPopulatedFields.add('address_line2');
     }
     if (addr.locality) {
       answers.city = addr.locality;
       answers.shipping_city = addr.locality;
+      apiPopulatedFields.add('city');
+      apiPopulatedFields.add('shipping_city');
     }
     if (addr.region) {
       answers.state = addr.region.toUpperCase();
       answers.shipping_state = addr.region.toUpperCase();
       answers.home_state = addr.region.toUpperCase();
+      apiPopulatedFields.add('state');
+      apiPopulatedFields.add('shipping_state');
+      apiPopulatedFields.add('home_state');
     }
     if (addr.postalCode) {
       answers.zip_code = addr.postalCode;
       answers.shipping_zip = addr.postalCode;
+      apiPopulatedFields.add('zip_code');
+      apiPopulatedFields.add('shipping_zip');
     }
     if (addr.country) {
       answers.country = addr.country.toUpperCase();
+      apiPopulatedFields.add('country');
     }
 
     // Structured address object
@@ -220,16 +245,18 @@ export const mapPatientDataToFormAnswers = (patientData: PatientData): Record<st
       country: addr.country?.toUpperCase() || 'US',
       default: addr.default || false,
     };
+    apiPopulatedFields.add('address');
   }
 
   // Date of Birth
   if (patient.profile?.dateOfBirth || patient.profile?.dayOfBirth) {
     const dob = patient.profile.dateOfBirth || patient.profile.dayOfBirth;
     if (dob) {
-      // Convert ISO date to MM/DD/YYYY format using moment
-      const momentDate = moment(dob);
-      if (momentDate.isValid()) {
-        answers.dob = momentDate.format('MM/DD/YYYY');
+      // Convert ISO date to MM/DD/YYYY format using date-fns
+      const date = parseISO(dob);
+      if (isValid(date)) {
+        answers.dob = format(date, 'MM/dd/yyyy');
+        apiPopulatedFields.add('dob');
       }
     }
   }
@@ -237,24 +264,28 @@ export const mapPatientDataToFormAnswers = (patientData: PatientData): Record<st
   // Gender Identity
   if (patient.profile?.genderIdentity) {
     answers.sex_birth = patient.profile.genderIdentity === 'Man/Boy' ? 'male' : 'female';
+    apiPopulatedFields.add('sex_birth');
   }
 
   // Medication preference
   if (patient.medication) {
     answers.selected_medication = patient.medication;
+    apiPopulatedFields.add('selected_medication');
   }
 
   // Weight goal
   if (patient.weight_goal_lbs) {
     answers.goal_weight = patient.weight_goal_lbs;
+    apiPopulatedFields.add('goal_weight');
   }
 
   // Client record ID
   if (patient.id) {
     answers.client_record_id = patient.id;
+    apiPopulatedFields.add('client_record_id');
   }
 
-  return answers;
+  return { answers, apiPopulatedFields };
 };
 
 /**

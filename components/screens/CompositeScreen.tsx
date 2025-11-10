@@ -128,7 +128,7 @@ const getYearsAgoDate = (years: number): Date => {
   return date;
 };
 
-const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType }> = ({ screen, answers, updateAnswer, onSubmit, showBack, onBack, headerSize, calculations = {}, showLoginLink }) => {
+const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; apiPopulatedFields?: Set<string> }> = ({ screen, answers, updateAnswer, onSubmit, showBack, onBack, headerSize, calculations = {}, showLoginLink, apiPopulatedFields = new Set() }) => {
   const { title, help_text, fields, footer_note, validation, post_screen_note } = screen;
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const autoAdvanceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -480,8 +480,11 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType }> =
               onBlur={() => handleBlur(field.id)}
               placeholder={field.placeholder}
               rows={textField.rows || 4}
+              disabled={apiPopulatedFields.has(field.id)}
               className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-300 bg-white resize-none ${
-                errors[field.id]
+                apiPopulatedFields.has(field.id)
+                  ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
+                  : errors[field.id]
                   ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-100'
                   : 'border-gray-200 focus:border-[#0D9488] focus:ring-4 focus:ring-[#0D9488]/10'
               } outline-none`}
@@ -513,6 +516,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType }> =
             error={errors[field.id]}
             maxLength={isDobField ? 10 : (!isDobField && isPhoneMask ? 14 : undefined)}
             required={textField.required}
+            disabled={apiPopulatedFields.has(field.id)}
           />
         );
       }
@@ -543,6 +547,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType }> =
                       }}
                       onBlur={() => handleBlur(field.id)}
                       error={errors[field.id]}
+                      disabled={apiPopulatedFields.has(field.id)}
                     />
                   </div>
                   <div>
@@ -560,6 +565,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType }> =
                       }}
                       onBlur={() => handleBlur('height_in')}
                       error={errors['height_in']}
+                      disabled={apiPopulatedFields.has('height_in')}
                     />
                   </div>
                 </div>
@@ -592,6 +598,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType }> =
             }}
             onBlur={() => handleBlur(field.id)}
             error={errors[field.id]}
+            disabled={apiPopulatedFields.has(field.id)}
           />
         );
       }
@@ -611,6 +618,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType }> =
                 value={value || ''}
                 onChange={(stateCode) => updateAnswer(field.id, stateCode)}
                 placeholder={field.placeholder || 'Select state'}
+                disabled={apiPopulatedFields.has(field.id)}
               />
               {errors[field.id] && <p className="mt-2 text-sm font-medium text-red-500">{errors[field.id]}</p>}
             </div>
@@ -662,6 +670,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType }> =
                     options={options}
                     selectedValue={value}
                     onSelect={handleSelect}
+                    disabled={apiPopulatedFields.has(field.id)}
                 />
                 {activeWarnings.map((warning, index) => {
                   const warningType = warning.type || 'error';

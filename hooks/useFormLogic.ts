@@ -2,9 +2,9 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { FormConfig, Screen, EligibilityRule } from "../types";
 import { evaluateLogic, checkCondition } from "../utils/logicEvaluator";
 import { performCalculations } from "../utils/calculationEngine";
-import { shouldSkipScreen, DEFAULT_SKIP_STEP_RULES } from "../utils/skipSteps";
+import { shouldSkipScreen, DEFAULT_SKIP_STEP_RULES, SkipStepRule } from "../utils/skipSteps";
 
-export const useFormLogic = (config: FormConfig) => {
+export const useFormLogic = (config: FormConfig, skipRules: SkipStepRule[] = DEFAULT_SKIP_STEP_RULES) => {
   const [currentScreenId, setCurrentScreenId] = useState<string>(
     config.screens[0].id
   );
@@ -150,14 +150,14 @@ export const useFormLogic = (config: FormConfig) => {
     }
 
     // Skip steps based on dynamic skip rules
-    if (nextId && shouldSkipScreen(nextId, latestAnswers, DEFAULT_SKIP_STEP_RULES)) {
+    if (nextId && shouldSkipScreen(nextId, latestAnswers, skipRules)) {
       const nextScreen = screenMap.get(nextId);
       if (nextScreen && nextScreen.next) {
         // Recursively check if the next screen should also be skipped
         let currentNextId = nextScreen.next;
         const visited = new Set<string>([nextId]); // Prevent infinite loops
         
-        while (currentNextId && shouldSkipScreen(currentNextId, latestAnswers, DEFAULT_SKIP_STEP_RULES)) {
+        while (currentNextId && shouldSkipScreen(currentNextId, latestAnswers, skipRules)) {
           if (visited.has(currentNextId)) {
             // Prevent infinite loop
             break;
@@ -188,6 +188,7 @@ export const useFormLogic = (config: FormConfig) => {
     flags,
     config.eligibility_rules,
     processEligibilityRules,
+    skipRules,
   ]);
 
   const goToPrev = useCallback(() => {

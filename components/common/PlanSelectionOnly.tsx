@@ -101,7 +101,8 @@ export default function PlanSelectionOnly({
           medication,
           pharmacyName
         );
-        setPlans(packages || []);
+        const fetchedPlans = packages || [];
+        setPlans(fetchedPlans);
       } catch (fetchError) {
         console.error("Error fetching plans:", fetchError);
         setError(
@@ -117,6 +118,21 @@ export default function PlanSelectionOnly({
 
     fetchPlans();
   }, [medication, state, serviceType, pharmacyName]);
+
+  // Auto-select plan if only one plan is available and no plan is currently selected
+  useEffect(() => {
+    if (plans.length === 0 || loading) return;
+    
+    const activePlans = plans.filter((plan) => plan.is_active === true);
+    // Only auto-select if exactly one plan and no plan is currently selected
+    if (activePlans.length === 1 && !selectedPlanId) {
+      const singlePlan = activePlans[0];
+      if (singlePlan.id) {
+        // Auto-select the single available plan
+        onSelect(singlePlan.id, singlePlan);
+      }
+    }
+  }, [plans, selectedPlanId, loading, onSelect]);
 
   if (loading) {
     return (

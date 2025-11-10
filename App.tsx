@@ -34,7 +34,7 @@ import EmailCaptureScreen from './components/screens/EmailCaptureScreen';
 import { buildMedicationHistorySummary } from './utils/medicationHistory';
 import AutocompleteScreen from './components/screens/AutocompleteScreen';
 import { getToken, fetchPatientData, mapPatientDataToFormAnswers } from './utils/tokenAuth';
-import { getSkippedScreensCount } from './utils/skipSteps';
+import { getSkippedScreensCount, getSkippedScreens, generateSkipRulesFromConfig, DEFAULT_SKIP_STEP_RULES, SkipStepRule } from './utils/skipSteps';
 
 type ProgramTheme = {
   headerBg: string;
@@ -171,6 +171,20 @@ const App: React.FC<AppProps> = ({ formConfig: providedFormConfig, defaultCondit
   const activeFormConfig = providedFormConfig ?? defaultFormConfig;
   const resolvedCondition = defaultCondition ?? activeFormConfig.default_condition ?? 'Weight Loss';
   const programTheme = useMemo(() => getProgramTheme(resolvedCondition), [resolvedCondition]);
+  
+  // Generate dynamic skip rules based on form configuration
+  // These rules will skip steps when all required fields are available in API data
+  const skipRules = useMemo<SkipStepRule[]>(() => {
+    const dynamicRules = generateSkipRulesFromConfig(activeFormConfig);
+    // Merge with default rules (default rules take precedence if there's a conflict)
+    const defaultRuleIds = new Set(DEFAULT_SKIP_STEP_RULES.map(r => r.screenId));
+    const mergedRules = [
+      ...DEFAULT_SKIP_STEP_RULES,
+      ...dynamicRules.filter(r => !defaultRuleIds.has(r.screenId))
+    ];
+    return mergedRules;
+  }, [activeFormConfig]);
+  
   const { 
     totalSteps = 0,
     currentScreen, 
@@ -183,17 +197,71 @@ const App: React.FC<AppProps> = ({ formConfig: providedFormConfig, defaultCondit
     updateAnswer,
     goToScreen,
     direction,
-  } = useFormLogic(activeFormConfig);
+  } = useFormLogic(activeFormConfig, skipRules);
 
   const serviceSlug = useMemo(() => toServiceSlug(resolvedCondition), [resolvedCondition]);
   
   // Calculate effective steps and progress accounting for all skipped steps
-  const { effectiveTotalSteps, effectiveProgress } = useMemo(() => {
-    const skippedCount = getSkippedScreensCount(answers, activeFormConfig.screens);
-    const effectiveTotal = totalSteps - skippedCount;
-    const effectiveProg = effectiveTotal > 0 ? (history.length / effectiveTotal) * 100 : 0;
-    return { effectiveTotalSteps: effectiveTotal, effectiveProgress: effectiveProg };
-  }, [answers, activeFormConfig.screens, totalSteps, history.length]);
+  const { effectiveTotalSteps, effectiveCurrentStep, effectiveProgress } = useMemo(() => {
+    // If no current screen, return default values
+    if (!currentScreen) {
+      return { 
+        effectiveTotalSteps: 1, 
+        effectiveCurrentStep: 1,
+        effectiveProgress: 0 
+      };
+    }
+    
+    const skippedScreenIds = getSkippedScreens(answers, skipRules);
+    const skippedSet = new Set(skippedScreenIds);
+    
+    // Calculate effective total steps (excluding skipped screens)
+    // Only count input screens, not content/interstitial/terminal screens
+    const inputScreens = activeFormConfig.screens.filter(screen => {
+      const skipScreenTypes = ['content', 'interstitial', 'terminal', 'review', 'plan_selection'];
+      return !skipScreenTypes.includes(screen.type);
+    });
+    const skippedCount = inputScreens.filter(screen => skippedSet.has(screen.id)).length;
+    const effectiveTotal = Math.max(1, inputScreens.length - skippedCount);
+    
+    // Calculate effective current step (excluding skipped screens from history)
+    // Count non-skipped screens in history
+    const nonSkippedHistoryCount = history.filter(screenId => !skippedSet.has(screenId)).length;
+    
+    // IMPORTANT: Never skip the current screen in progress calculation
+    // Even if all fields are filled, the user is still on this screen
+    // The screen will be skipped when navigating to the next screen
+    // Effective current step = non-skipped screens in history + current screen
+    // Always count the current screen, even if it's "skippable" (user is still on it)
+    const effectiveCurrent = nonSkippedHistoryCount + 1;
+    
+    // If we're on a terminal screen, show 100%
+    if (currentScreen.type === 'terminal') {
+      return { 
+        effectiveTotalSteps: effectiveTotal, 
+        effectiveCurrentStep: effectiveTotal,
+        effectiveProgress: 100 
+      };
+    }
+    
+    // Calculate progress percentage based on actual step position
+    // Must exactly match: (currentStep / totalSteps) * 100
+    // This ensures the progress bar percentage matches the displayed step numbers
+    // Example: Step 2 of 10 = (2/10) * 100 = 20%
+    let effectiveProg = 0;
+    if (effectiveTotal > 0 && effectiveCurrent > 0) {
+      effectiveProg = (effectiveCurrent / effectiveTotal) * 100;
+      // Cap at 95% for non-terminal screens (terminal screens already handled above)
+      // This prevents showing 100% before reaching the final screen
+      effectiveProg = Math.min(95, Math.max(0, effectiveProg));
+    }
+    
+    return { 
+      effectiveTotalSteps: effectiveTotal, 
+      effectiveCurrentStep: effectiveCurrent,
+      effectiveProgress: effectiveProg 
+    };
+  }, [answers, activeFormConfig.screens, history, skipRules, currentScreen]);
   const [leadId, setLeadId] = useState<string | null>(() => {
     if (typeof window === 'undefined') {
       return null;
@@ -297,6 +365,9 @@ const App: React.FC<AppProps> = ({ formConfig: providedFormConfig, defaultCondit
   }, [currentScreen.id, saveProgress, history.length]);
 
 
+  // Track which fields were populated from API (to disable them in forms)
+  const [apiPopulatedFields, setApiPopulatedFields] = useState<Set<string>>(new Set());
+
   // Token-based authentication and auto-fill
   const tokenProcessedRef = useRef(false);
   useEffect(() => {
@@ -315,7 +386,10 @@ const App: React.FC<AppProps> = ({ formConfig: providedFormConfig, defaultCondit
         const patientData = await fetchPatientData(token);
         
         if (patientData) {
-          const mappedAnswers = mapPatientDataToFormAnswers(patientData);
+          const { answers: mappedAnswers, apiPopulatedFields: apiFields } = mapPatientDataToFormAnswers(patientData);
+          
+          // Store API-populated fields
+          setApiPopulatedFields(apiFields);
           
           // Auto-fill all available fields
           Object.entries(mappedAnswers).forEach(([key, value]) => {
@@ -899,7 +973,7 @@ const App: React.FC<AppProps> = ({ formConfig: providedFormConfig, defaultCondit
       case 'multi_select':
         return <MultiSelectScreen key={screen.id} {...commonProps} screen={screen} />;
       case 'composite':
-        return <CompositeScreen key={screen.id} {...commonProps} screen={screen} />;
+        return <CompositeScreen key={screen.id} {...commonProps} screen={screen} apiPopulatedFields={apiPopulatedFields} />;
       case 'content':
         return <ContentScreen key={screen.id} {...commonProps} screen={screen} />;
       case 'text':
@@ -952,7 +1026,7 @@ const App: React.FC<AppProps> = ({ formConfig: providedFormConfig, defaultCondit
         <ScreenHeader
           onBack={currentScreen.id === 'complete.assessment_review' ? undefined : (history.length > 0 ? goToPrev : undefined)}
           sectionLabel={getSectionLabel(currentScreen)}
-          currentStep={history.length + 1}
+          currentStep={effectiveCurrentStep}
           totalSteps={effectiveTotalSteps}
           showProgress={activeFormConfig.settings.progress_bar}
           progressPercentage={effectiveProgress}

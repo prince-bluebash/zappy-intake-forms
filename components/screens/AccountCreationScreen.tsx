@@ -69,7 +69,7 @@ function StripePaymentForm({
 
   const handleStripeSubmit = React.useCallback(async () => {
     if (!stripe || !elements) {
-      throw new Error('Stripe is not initialized');
+      throw new Error("Stripe is not initialized");
     }
 
     setIsProcessing(true);
@@ -77,40 +77,49 @@ function StripePaymentForm({
     try {
       // Validate the payment element
       const { error: submitError } = await elements.submit();
-      
+
       if (submitError) {
-        throw new Error(submitError.message || 'Payment validation failed');
+        throw new Error(submitError.message || "Payment validation failed");
       }
 
       // Confirm the setup intent with Stripe
       const { error: confirmError, setupIntent } = await stripe.confirmSetup({
         elements,
         clientSecret,
-        redirect: 'if_required',
+        redirect: "if_required",
       });
 
       if (confirmError) {
-        throw new Error(confirmError.message || 'Failed to confirm payment method');
+        throw new Error(
+          confirmError.message || "Failed to confirm payment method"
+        );
       }
 
       if (setupIntent && setupIntent.payment_method) {
         // Payment method was successfully saved
-        const paymentMethodId = typeof setupIntent.payment_method === 'string' 
-          ? setupIntent.payment_method 
-          : setupIntent.payment_method.id;
-        
+        const paymentMethodId =
+          typeof setupIntent.payment_method === "string"
+            ? setupIntent.payment_method
+            : setupIntent.payment_method.id;
+
         onPaymentMethodConfirmed(paymentMethodId);
         return paymentMethodId;
       } else {
-        throw new Error('Payment method confirmation incomplete');
+        throw new Error("Payment method confirmation incomplete");
       }
     } catch (err: any) {
-      console.error('Stripe submission error:', err);
+      console.error("Stripe submission error:", err);
       throw err; // Re-throw to be caught by parent
     } finally {
       setIsProcessing(false);
     }
-  }, [stripe, elements, clientSecret, onPaymentMethodConfirmed, setIsProcessing]);
+  }, [
+    stripe,
+    elements,
+    clientSecret,
+    onPaymentMethodConfirmed,
+    setIsProcessing,
+  ]);
 
   // Expose the submit function to parent component
   React.useEffect(() => {
@@ -135,12 +144,14 @@ function MockPaymentForm({
   onComplete,
   onBack,
   updateAnswer,
+  onProcessingChange,
 }: {
   selectedPlan: any;
   answers: Record<string, any>;
   onComplete: (accountData: any) => void;
   onBack: () => void;
   updateAnswer: (id: string, value: any) => void;
+  onProcessingChange?: (isProcessing: boolean) => void;
 }) {
   const getString = (value: unknown, fallback: string = ""): string =>
     typeof value === "string" ? value : fallback;
@@ -230,7 +241,9 @@ function MockPaymentForm({
   const userEmail = getString(answers.email || answers.account_email);
   const userName = getString(answers.first_name || answers.account_firstName);
 
-  const handleIdPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleIdPhotoChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       setIdPhoto(file);
@@ -310,9 +323,12 @@ function MockPaymentForm({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return;
+    }
 
     setIsProcessing(true);
+    onProcessingChange?.(true);
 
     try {
       // If we have card details and a customer ID, add the card to Stripe
@@ -398,17 +414,20 @@ function MockPaymentForm({
       if (setupIntentClientSecret && stripePromise) {
         // Check if Stripe submit handler is available (from StripePaymentForm component)
         const stripeSubmitHandler = (window as any).__stripeSubmitHandler;
-        
+
         if (stripeSubmitHandler) {
           try {
             await stripeSubmitHandler();
             // Payment method confirmed successfully
             // The payment method ID is handled in StripePaymentForm
           } catch (stripeError: any) {
-            setErrors({ 
-              general: stripeError?.message || "Failed to process payment method. Please try again." 
+            setErrors({
+              general:
+                stripeError?.message ||
+                "Failed to process payment method. Please try again.",
             });
             setIsProcessing(false);
+            onProcessingChange?.(false);
             return;
           }
         } else {
@@ -435,6 +454,7 @@ function MockPaymentForm({
       setErrors({ general: "An error occurred. Please try again." });
     } finally {
       setIsProcessing(false);
+      onProcessingChange?.(false);
     }
   };
 
@@ -511,8 +531,9 @@ function MockPaymentForm({
   };
 
   const setupIntent = useCallback(async () => {
-    const response :any = await apiClient.setupIntent({
-      client_record_id: answers["client_record_id"] || "156ca3307961ed745af2563f",
+    const response: any = await apiClient.setupIntent({
+      client_record_id:
+        answers["client_record_id"] || "156ca3307961ed745af2563f",
       usage: "off_session",
       metadata: {
         source: "setup_intent_test_page_manual_prepare",
@@ -524,7 +545,7 @@ function MockPaymentForm({
   }, [answers["client_record_id"]]);
 
   useEffect(() => {
-    if(answers["client_record_id"]){
+    if (answers["client_record_id"]) {
       setupIntent();
     }
   }, [answers["client_record_id"], setupIntent]);
@@ -533,7 +554,7 @@ function MockPaymentForm({
   const planName =
     selectedPlan?.name || answers["selected_plan_name"] || "Selected Plan";
   const planPrice =
-    selectedPlan?.invoice_amount || answers["selected_plan_price"] || 299;
+    selectedPlan?.per_month_price || answers["selected_plan_price"] || 299;
 
   // Determine CTA text and title based on user state
   const ctaText = isExistingCustomer
@@ -920,7 +941,7 @@ function MockPaymentForm({
               clientSecret={setupIntentClientSecret}
               onPaymentMethodConfirmed={(paymentMethodId) => {
                 // Store payment method ID in answers
-                console.log('Payment method confirmed:', paymentMethodId);
+                console.log("Payment method confirmed:", paymentMethodId);
               }}
               isProcessing={isProcessing}
               setIsProcessing={setIsProcessing}
@@ -1067,9 +1088,9 @@ function MockPaymentForm({
         layout="grouped"
       />
 
-      <p className="text-xs text-center text-neutral-500 mt-4">
+      {/* <p className="text-xs text-center text-neutral-500 mt-4">
         🔒 This is a demo form - no actual payment will be processed
-      </p>
+      </p> */}
     </form>
   );
 }
@@ -1086,77 +1107,90 @@ export default function AccountCreationScreen({
 }: ScreenProps & { key?: string }) {
   const selectedPlan = answers["selected_plan_details"] || {};
   const selectedMedication = answers["selected_medication"] || "Medication";
+  const [isProcessing, setIsProcessing] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#fef8f2] flex justify-center p-4 sm:p-6 pt-5 sm:pt-7">
-      <div className="w-full max-w-3xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          {/* Title */}
-          <div className="mb-10 text-center">
-            <motion.h1
-              initial={{ opacity: 0, y: 10 }}
+    <>
+      {isProcessing ? (
+        <div className="w-full text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#00A896]"></div>
+          <p className="mt-4 text-neutral-600">Processing...</p>
+        </div>
+      ) : (
+        <div className="min-h-screen bg-[#fef8f2] flex justify-center p-4 sm:p-6 pt-5 sm:pt-7 relative">
+          {/* Full-page spinner overlay */}
+          <div className="w-full max-w-3xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-2xl sm:text-3xl md:text-4xl text-neutral-900 mb-3 sm:mb-4 leading-snug tracking-tight"
-              style={{ letterSpacing: "-0.02em" }}
             >
-              You made it! 🎉
-            </motion.h1>
+              {/* Title */}
+              <div className="mb-10 text-center">
+                <motion.h1
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-2xl sm:text-3xl md:text-4xl text-neutral-900 mb-3 sm:mb-4 leading-snug tracking-tight"
+                  style={{ letterSpacing: "-0.02em" }}
+                >
+                  You made it! 🎉
+                </motion.h1>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-base sm:text-lg text-neutral-600 leading-relaxed"
-            >
-              We just need your shipping address and ID to complete your order.
-            </motion.p>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-base sm:text-lg text-neutral-600 leading-relaxed"
+                >
+                  We just need your shipping address and ID to complete your
+                  order.
+                </motion.p>
+              </div>
+
+              {/* Form */}
+              <MockPaymentForm
+                selectedPlan={selectedPlan}
+                answers={answers}
+                updateAnswer={updateAnswer}
+                onProcessingChange={setIsProcessing}
+                onComplete={(accountData) => {
+                  // Save account data to answers
+                  Object.entries(accountData).forEach(([key, value]) => {
+                    updateAnswer(`account_${key}`, value);
+                    if (key === "email" || key === "phone") {
+                      updateAnswer(key, value);
+                    }
+                    if (key === "state") {
+                      const stateCode = normalizeStateCode(value);
+                      updateAnswer("state", stateCode);
+                      updateAnswer("home_state", stateCode);
+                      updateAnswer("shipping_state", stateCode);
+                    }
+                    if (key === "city") {
+                      updateAnswer("city", value);
+                      updateAnswer("shipping_city", value);
+                    }
+                    if (key === "address") {
+                      updateAnswer("address_line1", value);
+                      updateAnswer("shipping_address", value);
+                    }
+                    if (key === "address2") {
+                      updateAnswer("address_line2", value);
+                      updateAnswer("shipping_address2", value);
+                      updateAnswer("unit", value);
+                    }
+                    if (key === "zipCode") {
+                      updateAnswer("zip_code", value);
+                      updateAnswer("shipping_zip", value);
+                    }
+                  });
+                  // Submit the form
+                  onSubmit(accountData);
+                }}
+                onBack={onBack}
+              />
+            </motion.div>
           </div>
-
-          {/* Form */}
-          <MockPaymentForm
-            selectedPlan={selectedPlan}
-            answers={answers}
-            updateAnswer={updateAnswer}
-            onComplete={(accountData) => {
-              // Save account data to answers
-              Object.entries(accountData).forEach(([key, value]) => {
-                updateAnswer(`account_${key}`, value);
-                if (key === "email" || key === "phone") {
-                  updateAnswer(key, value);
-                }
-                if (key === "state") {
-                  const stateCode = normalizeStateCode(value);
-                  updateAnswer("state", stateCode);
-                  updateAnswer("home_state", stateCode);
-                  updateAnswer("shipping_state", stateCode);
-                }
-                if (key === "city") {
-                  updateAnswer("city", value);
-                  updateAnswer("shipping_city", value);
-                }
-                if (key === "address") {
-                  updateAnswer("address_line1", value);
-                  updateAnswer("shipping_address", value);
-                }
-                if (key === "address2") {
-                  updateAnswer("address_line2", value);
-                  updateAnswer("shipping_address2", value);
-                  updateAnswer("unit", value);
-                }
-                if (key === "zipCode") {
-                  updateAnswer("zip_code", value);
-                  updateAnswer("shipping_zip", value);
-                }
-              });
-              // Submit the form
-              onSubmit(accountData);
-            }}
-            onBack={onBack}
-          />
-        </motion.div>
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 }

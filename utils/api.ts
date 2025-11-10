@@ -188,7 +188,6 @@ export interface CreatePaymentIntentPayload {
 }
 
 const BASE_URL = import.meta.env.VITE_BACKEND_API_BASE || 'http://localhost:3005';
-// const BASE_URL ='/api' || 'http://localhost:3005';
 const API_KEY = import.meta.env.VITE_BACKEND_API_KEY || '';
 
 const defaultHeaders: HeadersInit = {
