@@ -555,6 +555,7 @@ function MockPaymentForm({
     selectedPlan?.name || answers["selected_plan_name"] || "Selected Plan";
   const planPrice =
     selectedPlan?.per_month_price || answers["selected_plan_price"] || 299;
+  const invoiceAmount = selectedPlan?.invoice_amount || answers["selected_plan_invoice_amount"] || 299;
 
   // Determine CTA text and title based on user state
   const ctaText = isExistingCustomer
@@ -605,8 +606,7 @@ function MockPaymentForm({
             <span className="text-xl font-bold text-[#00A896]">$0</span>
           </div>
           <p className="text-xs text-[#666666] leading-relaxed">
-            You'll be charged ${planPrice}/month once prescribed. No charge if
-            not approved.
+            You'll be charged ${invoiceAmount} once prescribed. You won't be charged if a provider determines that our program isn't right for you.
           </p>
         </div>
 
