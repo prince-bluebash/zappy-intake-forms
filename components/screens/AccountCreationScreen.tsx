@@ -701,7 +701,7 @@ function MockPaymentForm({
           )}
           <div className="flex items-baseline justify-between pt-3 border-t border-[#E8E8E8]">
             <span className="text-sm text-[#666666]">Total </span>
-            <span className="text-xl text-[#00A896]">${invoiceAmount}</span>
+            <span className="text-xl text-[#00A896]">${invoiceAmount - savings}</span>
           </div>
           <div className="flex items-baseline justify-between pt-3 border-t border-[#E8E8E8]">
             <span className="text-sm text-[#666666]">Due today</span>
@@ -712,7 +712,7 @@ function MockPaymentForm({
         {/* Important Notice */}
         <div className="mt-5 pt-5 border-t border-[#E8E8E8]">
           <p className="text-xs text-[#666666] leading-relaxed">
-            You'll be charged ${planPrice} once prescribed. You won't be charged
+            You'll be charged ${invoiceAmount - savings} once prescribed. You won't be charged
             if a provider determines that our program isn't right for you.
           </p>
         </div>
