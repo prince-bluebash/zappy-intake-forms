@@ -923,6 +923,10 @@ const App: React.FC<AppProps> = ({ formConfig: providedFormConfig, defaultCondit
     
     // Handler to navigate to email capture screen for sign-in
     const handleSignInClick = () => {
+      // Set a flag in sessionStorage to indicate user clicked sign-in
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('zappy_sign_in_clicked', 'true');
+      }
       goToScreen('capture.email');
     };
     

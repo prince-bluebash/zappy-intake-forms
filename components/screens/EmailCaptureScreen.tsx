@@ -62,6 +62,21 @@ const EmailCaptureScreen: React.FC<EmailCaptureScreenProps> = ({
   // Ref for debounce timeout
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Check if user navigated here via sign-in link from another screen
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const signInClicked = sessionStorage.getItem('zappy_sign_in_clicked');
+      if (signInClicked === 'true') {
+        // User clicked sign-in from another screen - set sign-in states
+        setManualSignIn(true);
+        setIsSigningIn(true);
+        setShowPasswordField(true);
+        // Clear the flag
+        sessionStorage.removeItem('zappy_sign_in_clicked');
+      }
+    }
+  }, []); // Run once on mount
+
   // Effect to manage password field focus
   useEffect(() => {
     // Focus password field only for sign-in flow, not for new account creation
@@ -738,7 +753,7 @@ const EmailCaptureScreen: React.FC<EmailCaptureScreenProps> = ({
                   >
                     Terms
                   </a>
-                  ,{" "}
+                  {" "}and{" "}
                   <a
                     href="https://zappyhealth.com/privacy"
                     target="_blank"
@@ -747,26 +762,6 @@ const EmailCaptureScreen: React.FC<EmailCaptureScreenProps> = ({
                     onClick={(e) => e.stopPropagation()}
                   >
                     Privacy Policy
-                  </a>
-                  ,{" "}
-                  <a
-                    href="https://zappyhealth.com/telehealth"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#00A896] hover:underline"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    Telehealth Consent
-                  </a>
-                  , and{" "}
-                  <a
-                    href="https://zappyhealth.com/hipaa"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#00A896] hover:underline"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    HIPAA Authorization
                   </a>
                 </span>
               </label>

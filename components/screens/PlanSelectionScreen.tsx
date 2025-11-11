@@ -105,7 +105,7 @@ export default function PlanSelectionScreen({ screen, answers, updateAnswer, onS
     updateAnswer('selected_plan_id', planId);
     updateAnswer('selected_plan', planId);
     if (plan) {
-      const price = plan.invoice_amount ?? plan.invoiceAmount;
+      const price = plan.per_month_price ?? plan.invoice_amount ?? plan.invoiceAmount;
       updateAnswer('selected_plan_name', plan.name || plan.plan || '');
       updateAnswer('selected_plan_price', price ?? null);
       updateAnswer('selected_plan_price_display', formatCurrency(price));
@@ -138,6 +138,7 @@ export default function PlanSelectionScreen({ screen, answers, updateAnswer, onS
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full"
     >
       <ScreenLayout title={title || 'Select Your Plan'} helpText="">
         {selectedMedicationName && (
