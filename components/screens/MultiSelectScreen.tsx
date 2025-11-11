@@ -10,7 +10,7 @@ import { MultiSelectScreen as MultiSelectScreenType } from '../../types';
 
 const PILL_THRESHOLD = 5; // Switch to pills when more than 5 options
 
-const MultiSelectScreen: React.FC<ScreenProps & { screen: MultiSelectScreenType }> = ({ screen, answers, updateAnswer, onSubmit, showBack, onBack, showLoginLink }) => {
+const MultiSelectScreen: React.FC<ScreenProps & { screen: MultiSelectScreenType }> = ({ screen, answers, updateAnswer, onSubmit, showBack, onBack, showLoginLink, onSignInClick }) => {
   const { id, title, help_text, options = [], required, other_text_id, other_text_placeholder } = screen;
   const selectedValues: string[] = answers[id] || [];
   const autoAdvanceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -100,6 +100,7 @@ const MultiSelectScreen: React.FC<ScreenProps & { screen: MultiSelectScreenType 
           onBack={onBack}
           onNext={onSubmit}
           isNextDisabled={!isComplete}
+          onSignInClick={onSignInClick}
         />
       </ScreenLayout>
     </motion.div>

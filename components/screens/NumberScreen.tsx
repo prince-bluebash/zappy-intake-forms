@@ -5,7 +5,7 @@ import Input from '../ui/Input';
 import NavigationButtons from '../common/NavigationButtons';
 import { NumberScreen as NumberScreenType } from '../../types';
 
-const NumberScreen: React.FC<ScreenProps & { screen: NumberScreenType }> = ({ screen, answers, updateAnswer, onSubmit, showBack, onBack }) => {
+const NumberScreen: React.FC<ScreenProps & { screen: NumberScreenType }> = ({ screen, answers, updateAnswer, onSubmit, showBack, onBack, onSignInClick }) => {
   const { id, title, help_text, placeholder, required, suffix, min, max } = screen;
   const value = answers[id] || '';
   const [error, setError] = useState<string | undefined>(undefined);
@@ -84,6 +84,7 @@ const NumberScreen: React.FC<ScreenProps & { screen: NumberScreenType }> = ({ sc
           onBack={onBack}
           onNext={handleSubmit}
           isNextDisabled={!isComplete}
+          onSignInClick={onSignInClick}
           nextButtonType="submit"
         />
       </form>

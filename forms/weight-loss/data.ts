@@ -121,6 +121,7 @@ const formConfig: FormConfig = {
             { value: "female", label: "Female" },
           ],
           required: true,
+          auto_advance: true,
         },
         {
           id: "height_ft",
@@ -313,6 +314,7 @@ const formConfig: FormConfig = {
             { value: "yes", label: "Yes" },
           ],
           required: true,
+          auto_advance: true,
         },
         {
           id: "eating_disorder_type",
@@ -346,6 +348,7 @@ const formConfig: FormConfig = {
               type: "error",
             },
           ],
+          auto_advance: true,
         },
         {
           id: "alcohol_use",
@@ -364,6 +367,7 @@ const formConfig: FormConfig = {
           progressive_display: {
             show_after_field: "eating_relationship",
           },
+          auto_advance: true,
         },
         {
           id: "tobacco_use",
@@ -379,6 +383,7 @@ const formConfig: FormConfig = {
           progressive_display: {
             show_after_field: "alcohol_use",
           },
+          auto_advance: true,
         },
         {
           id: "recreational_substances",
@@ -399,6 +404,7 @@ const formConfig: FormConfig = {
           progressive_display: {
             show_after_field: "tobacco_use",
           },
+          auto_advance: true,
         },
       ],
       next: "assessment.medical_conditions",
@@ -418,6 +424,7 @@ const formConfig: FormConfig = {
             { value: "yes", label: "Yes" },
           ],
           required: true,
+          auto_advance: true,
         },
         {
           id: "diabetes_type",
@@ -442,6 +449,7 @@ const formConfig: FormConfig = {
               type: "warning",
             },
           ],
+          auto_advance: true,
         },
         {
           id: "pregnancy",
@@ -457,6 +465,7 @@ const formConfig: FormConfig = {
             { value: "nursing", label: "Currently breastfeeding" },
           ],
           required: false,
+          auto_advance: true,
           progressive_display: {
             show_after_field: "diabetes",
             show_if_condition: "demographics.sex_birth == 'female'",
@@ -557,6 +566,7 @@ const formConfig: FormConfig = {
               type: "info",
             },
           ],
+          auto_advance: true,
         },
         {
           id: "glp1_safety",
@@ -601,6 +611,7 @@ const formConfig: FormConfig = {
               type: "error",
             },
           ],
+          auto_advance: true,
         },
       ],
       next: "assessment.medications_allergies",
@@ -665,6 +676,7 @@ const formConfig: FormConfig = {
             { value: "yes", label: "Yes" },
           ],
           required: true,
+          auto_advance: true,
           progressive_display: {
             show_after_field: "current_medications",
           },
@@ -690,6 +702,7 @@ const formConfig: FormConfig = {
             { value: "yes", label: "Yes" },
           ],
           required: true,
+          auto_advance: true,
           progressive_display: {
             show_after_field: "supplements",
           },
@@ -736,6 +749,7 @@ const formConfig: FormConfig = {
             },
           ],
           required: true,
+          auto_advance: true,
         },
       ],
       next: "assessment.journey_notes",

@@ -128,10 +128,11 @@ const getYearsAgoDate = (years: number): Date => {
   return date;
 };
 
-const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; apiPopulatedFields?: Set<string> }> = ({ screen, answers, updateAnswer, onSubmit, showBack, onBack, headerSize, calculations = {}, showLoginLink, apiPopulatedFields = new Set() }) => {
+const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; apiPopulatedFields?: Set<string> }> = ({ screen, answers, updateAnswer, onSubmit, showBack, onBack, headerSize, calculations = {}, showLoginLink, onSignInClick, apiPopulatedFields = new Set() }) => {
   const { title, help_text, fields, footer_note, validation, post_screen_note } = screen;
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const autoAdvanceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const pendingScrollToFieldRef = React.useRef<string | null>(null);
 
   useEffect(() => {
     const initialState = answers['home_state'];
@@ -147,6 +148,38 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
       }
     };
   }, []);
+
+  // Watch for when a field becomes visible and scroll to it
+  useEffect(() => {
+    if (pendingScrollToFieldRef.current) {
+      const fieldId = pendingScrollToFieldRef.current;
+      
+      // Use requestAnimationFrame to ensure DOM has updated
+      requestAnimationFrame(() => {
+        const fieldElement = document.querySelector(`[data-field-id="${fieldId}"]`);
+        
+        if (fieldElement) {
+          const rect = fieldElement.getBoundingClientRect();
+          const isVisible = rect.width > 0 && rect.height > 0;
+          
+          if (isVisible) {
+            // Add a small offset to account for fixed headers
+            const offset = -80;
+            const elementPosition = fieldElement.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition + offset;
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+            
+            // Clear the pending scroll
+            pendingScrollToFieldRef.current = null;
+          }
+        }
+      });
+    }
+  }, [answers]); // Re-run when answers change (fields become visible)
 
   const allFields = useMemo(() => {
     const flattened: Field[] = [];
@@ -647,15 +680,85 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
             if (autoAdvanceTimeoutRef.current) {
               clearTimeout(autoAdvanceTimeoutRef.current);
             }
-            const delay = 300; // 300ms delay as per React component
-            autoAdvanceTimeoutRef.current = setTimeout(() => {
-              onSubmit();
-            }, delay);
+            
+            // Find the next field that will be shown
+            // Check both progressive_display and conditional_display
+            const currentFieldIndex = allFields.findIndex(f => f.id === field.id);
+            const tempAnswers = { ...answers, [field.id]: val };
+            
+            // First, try to find a field that directly depends on the current field
+            let nextField = allFields.find((f, index) => {
+              // Skip fields before the current one
+              if (index <= currentFieldIndex) return false;
+              
+              // Check if field has progressive_display pointing to current field
+              if (f.progressive_display?.show_after_field === field.id) {
+                return true;
+              }
+              
+              // Check if field has conditional_display that depends on current field
+              if (f.conditional_display?.show_if) {
+                const showIf = f.conditional_display.show_if;
+                // Check if the condition references the current field
+                if (showIf.includes(`${field.id} ==`) || showIf.includes(`${field.id}!=`)) {
+                  // Check if field will be visible with the new answer
+                  return shouldShowField(f, tempAnswers);
+                }
+              }
+              
+              return false;
+            });
+            
+            // If no direct dependency found, find the next visible field
+            if (!nextField) {
+              nextField = allFields.find((f, index) => {
+                if (index <= currentFieldIndex) return false;
+                return shouldShowField(f, tempAnswers);
+              });
+            }
+            
+            if (nextField) {
+              // Wait for visual confirmation (300-600ms), using 500ms
+              const delay = 500;
+              autoAdvanceTimeoutRef.current = setTimeout(() => {
+                // Set the field ID to scroll to - the useEffect will handle the actual scrolling
+                // when the field becomes visible after React re-renders
+                pendingScrollToFieldRef.current = nextField.id;
+                
+                // Try to scroll immediately in case the field is already visible
+                requestAnimationFrame(() => {
+                  const nextFieldElement = document.querySelector(`[data-field-id="${nextField.id}"]`);
+                  if (nextFieldElement) {
+                    const rect = nextFieldElement.getBoundingClientRect();
+                    const isVisible = rect.width > 0 && rect.height > 0;
+                    
+                    if (isVisible) {
+                      const offset = -80;
+                      const elementPosition = nextFieldElement.getBoundingClientRect().top + window.pageYOffset;
+                      const offsetPosition = elementPosition + offset;
+                      
+                      window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                      });
+                      pendingScrollToFieldRef.current = null;
+                    }
+                  }
+                });
+              }, delay);
+            } else {
+              // No next field, submit the screen to go to next step
+              // Wait for visual confirmation first
+              const delay = 500;
+              autoAdvanceTimeoutRef.current = setTimeout(() => {
+                onSubmit();
+              }, delay);
+            }
           }
         };
 
         return (
-            <div>
+            <div data-field-id={field.id}>
                 {field.label && (
                     <label className={`block text-xl sm:text-2xl text-neutral-900 mb-3 font-medium ${field.labelClassName}`}>
                         {field.label}
@@ -733,6 +836,81 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
               autoAdvanceTimeoutRef.current = setTimeout(() => {
                 onSubmit();
               }, delay);
+            }
+            
+            // Handle field-level auto-advance (only scroll, never auto-submit)
+            if (multiSelectField.auto_advance && newValues.length > 0) {
+              if (autoAdvanceTimeoutRef.current) {
+                clearTimeout(autoAdvanceTimeoutRef.current);
+              }
+              
+              // Find the next field that will be shown
+              const currentFieldIndex = allFields.findIndex(f => f.id === field.id);
+              const tempAnswers = { ...answers, [field.id]: newValues };
+              
+              // First, try to find a field that directly depends on the current field
+              let nextField = allFields.find((f, index) => {
+                // Skip fields before the current one
+                if (index <= currentFieldIndex) return false;
+                
+                // Check if field has progressive_display pointing to current field
+                if (f.progressive_display?.show_after_field === field.id) {
+                  return true;
+                }
+                
+                // Check if field has conditional_display that depends on current field
+                if (f.conditional_display?.show_if) {
+                  const showIf = f.conditional_display.show_if;
+                  // Check if the condition references the current field
+                  if (showIf.includes(`${field.id} ==`) || showIf.includes(`${field.id}!=`) || showIf.includes(`${field.id} contains`)) {
+                    // Check if field will be visible with the new answer
+                    return shouldShowField(f, tempAnswers);
+                  }
+                }
+                
+                return false;
+              });
+              
+              // If no direct dependency found, find the next visible field
+              if (!nextField) {
+                nextField = allFields.find((f, index) => {
+                  if (index <= currentFieldIndex) return false;
+                  return shouldShowField(f, tempAnswers);
+                });
+              }
+              
+              // Only scroll if there's a next field - never auto-submit for multi_select
+              if (nextField) {
+                // Wait for visual confirmation (300-600ms), using 500ms
+                const delay = 500;
+                autoAdvanceTimeoutRef.current = setTimeout(() => {
+                  // Set the field ID to scroll to - the useEffect will handle the actual scrolling
+                  // when the field becomes visible after React re-renders
+                  pendingScrollToFieldRef.current = nextField!.id;
+                  
+                  // Try to scroll immediately in case the field is already visible
+                  requestAnimationFrame(() => {
+                    const nextFieldElement = document.querySelector(`[data-field-id="${nextField!.id}"]`);
+                    if (nextFieldElement) {
+                      const rect = nextFieldElement.getBoundingClientRect();
+                      const isVisible = rect.width > 0 && rect.height > 0;
+                      
+                      if (isVisible) {
+                        const offset = -80;
+                        const elementPosition = nextFieldElement.getBoundingClientRect().top + window.pageYOffset;
+                        const offsetPosition = elementPosition + offset;
+                        
+                        window.scrollTo({
+                          top: offsetPosition,
+                          behavior: 'smooth'
+                        });
+                        pendingScrollToFieldRef.current = null;
+                      }
+                    }
+                  });
+                }, delay);
+              }
+              // If no next field, do nothing - user must manually click Continue
             }
           };
           const selectedValues = value || [];
@@ -958,7 +1136,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
                 {fieldOrGroup.map(field => {
                   const fieldContent = renderField(field);
                   return (
-                    <div key={field.id}>
+                    <div key={field.id} data-field-id={field.id}>
                       {field.progressive_display ? (
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
@@ -978,7 +1156,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
           } else {
             const fieldContent = renderField(fieldOrGroup);
             return (
-              <div key={fieldOrGroup.id}>
+              <div key={fieldOrGroup.id} data-field-id={fieldOrGroup.id}>
                 {fieldOrGroup.progressive_display ? (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -1036,6 +1214,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
         onNext={handleSubmit}
         isNextDisabled={!isComplete}
         nextButtonType="button"
+        onSignInClick={onSignInClick}
       />
     </ScreenLayout>
   );
