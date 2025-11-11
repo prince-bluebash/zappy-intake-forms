@@ -476,7 +476,7 @@ export default function MedicationChoiceScreen({
 
     updateAnswer('selected_medication_id', identity.id);
     updateAnswer('selected_medication', medicationName);
-    updateAnswer('selected_medication_name', medicationName);
+    updateAnswer('selected_medication_name', identity.medication);
     updateAnswer('selected_medication_details', identity.details);
 
     updateAnswer('selected_pharmacy_id', pharmacy.id);
