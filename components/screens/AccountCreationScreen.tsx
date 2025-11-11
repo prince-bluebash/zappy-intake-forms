@@ -554,8 +554,39 @@ function MockPaymentForm({
   const planName =
     selectedPlan?.name || answers["selected_plan_name"] || "Selected Plan";
   const planPrice =
-    selectedPlan?.per_month_price || answers["selected_plan_price"] || 299;
+    selectedPlan?.invoice_amount || answers["selected_plan_price"] || 299;
   const invoiceAmount = selectedPlan?.invoice_amount || answers["selected_plan_invoice_amount"] || 299;
+  
+  // Extract plan details for multi-month display
+  const planType = selectedPlan?.plan || answers["selected_plan_type"] || "month"; // 'month', '3-month', '12-month'
+  const billingFrequency = selectedPlan?.billingFrequency || "Billed every 4 weeks";
+  const savings = selectedPlan?.savings || appliedDiscount?.amount || answers["discount_amount"] || null;
+  const savingsPercent = selectedPlan?.savingsPercent || (savings && planPrice > 0 ? Math.round((savings / planPrice) * 100) : 0);
+  
+  // Calculate total amounts based on plan type
+  const getOrderTotals = () => {
+    if (planType === "3-month") {
+      return {
+        totalDue: planPrice * 3,
+        billingCycle: "3 months",
+        deliveries: 3,
+      };
+    } else if (planType === "12-month") {
+      return {
+        totalDue: planPrice * 12,
+        billingCycle: "annually",
+        deliveries: 12,
+      };
+    }
+    // Default to monthly
+    return {
+      totalDue: planPrice,
+      billingCycle: "monthly",
+      deliveries: 1,
+    };
+  };
+  
+  const orderTotals = getOrderTotals();
 
   // Determine CTA text and title based on user state
   const ctaText = isExistingCustomer
@@ -580,141 +611,191 @@ function MockPaymentForm({
         transition={{ delay: 0.1 }}
         className="bg-white rounded-2xl p-6 shadow-sm border border-[#E8E8E8]"
       >
-        {/* Plan Summary */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#E0F5F3] flex items-center justify-center">
+        {/* Plan Header */}
+        <div className="flex items-start justify-between mb-5 pb-5 border-b border-[#E8E8E8]">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
               <Package className="w-5 h-5 text-[#00A896]" />
+              <h3 className="text-[#2D3436]">{planName}</h3>
             </div>
-            <div>
-              <h3 className="text-[#2D3436] font-medium">{planName}</h3>
-              <p className="text-sm text-[#666666]">{selectedMedication}</p>
-            </div>
+            <p className="text-sm text-[#666666] mb-2">
+              {selectedMedication}
+            </p>
+            {savings && savings > 0 && (
+              <div className="inline-flex items-center gap-1.5 bg-[#E0F5F3] text-[#00A896] px-2.5 py-1 rounded-full text-xs">
+                <TrendingDown className="w-3.5 h-3.5" />
+                <span>Save ${savings} ({savingsPercent}% off)</span>
+              </div>
+            )}
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-[#00A896]">
-              ${planPrice}
+            <div className="text-[#2D3436] mb-1">
+              <span className="text-2xl">${planPrice}</span>
+              <span className="text-sm text-[#666666]">/mo</span>
             </div>
-            <div className="text-xs text-[#666666]">/month</div>
+            {planType !== "month" && (
+              <p className="text-xs text-[#666666]">
+                ${orderTotals.totalDue} {orderTotals.billingCycle}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Payment Info */}
-        <div className="py-4 border-t border-[#E8E8E8]">
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="text-sm text-[#666666]">Due today</span>
-            <span className="text-xl font-bold text-[#00A896]">$0</span>
+        {/* Benefits */}
+        <div className="space-y-3 mb-5">
+          <div className="flex items-start gap-3">
+            <div className="w-5 h-5 rounded-full bg-[#E0F5F3] flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Check className="w-3 h-3 text-[#00A896]" />
+            </div>
+            <p className="text-sm text-[#2D3436]">
+              {orderTotals.deliveries === 1 
+                ? "Monthly delivery of medication" 
+                : `${orderTotals.deliveries} monthly deliveries included`}
+            </p>
           </div>
+          <div className="flex items-start gap-3">
+            <div className="w-5 h-5 rounded-full bg-[#E0F5F3] flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Check className="w-3 h-3 text-[#00A896]" />
+            </div>
+            <p className="text-sm text-[#2D3436]">No insurance required</p>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-5 h-5 rounded-full bg-[#E0F5F3] flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Check className="w-3 h-3 text-[#00A896]" />
+            </div>
+            <p className="text-sm text-[#2D3436]">Ongoing provider support & dosage adjustments</p>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-5 h-5 rounded-full bg-[#E0F5F3] flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Check className="w-3 h-3 text-[#00A896]" />
+            </div>
+            <p className="text-sm text-[#2D3436]">Cancel anytime, no long-term commitment</p>
+          </div>
+        </div>
+
+        {/* Pricing Breakdown */}
+        <div className="space-y-3 pt-5 border-t border-[#E8E8E8]">
+          {planType !== "month" ? (
+            <>
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm text-[#666666]">{planName} ({planType})</span>
+                <span className="text-[#2D3436]">${planPrice}/mo × {orderTotals.deliveries}</span>
+              </div>
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm text-[#666666]">Billed {orderTotals.billingCycle}</span>
+                <span className="text-[#2D3436]">${orderTotals.totalDue}</span>
+              </div>
+              {savings && savings > 0 && (
+                <div className="flex items-baseline justify-between text-[#00A896]">
+                  <span className="text-sm">Your savings</span>
+                  <span>-${savings}</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-[#666666]">Monthly subscription</span>
+              <span className="text-[#2D3436]">${planPrice}</span>
+            </div>
+          )}
+          <div className="flex items-baseline justify-between pt-3 border-t border-[#E8E8E8]">
+            <span className="text-sm text-[#666666]">Due today</span>
+            <span className="text-xl text-[#00A896]">$0</span>
+          </div>
+        </div>
+
+        {/* Important Notice */}
+        <div className="mt-5 pt-5 border-t border-[#E8E8E8]">
           <p className="text-xs text-[#666666] leading-relaxed">
-            You'll be charged ${invoiceAmount} once prescribed. You won't be charged if a provider determines that our program isn't right for you.
+            You'll be charged {planType !== "month" ? `$${orderTotals.totalDue} ${orderTotals.billingCycle}` : `$${planPrice} monthly`} once prescribed. You won't be charged if a provider determines that our program isn't right for you.
           </p>
         </div>
 
         {/* Discount Code Section */}
         <details className="group pt-5 border-t border-[#E8E8E8]">
           <summary className="flex items-center justify-between cursor-pointer list-none">
-            <span className="text-sm text-[#2D3436]">
-              Have a discount code?
-            </span>
-            <svg
-              className="w-5 h-5 text-[#666666] transition-transform group-open:rotate-180"
-              fill="none"
-              viewBox="0 0 24 24"
+            <span className="text-sm text-[#2D3436]">Have a discount code?</span>
+            <svg 
+              className="w-5 h-5 text-[#666666] transition-transform group-open:rotate-180" 
+              fill="none" 
+              viewBox="0 0 24 24" 
               stroke="currentColor"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </summary>
           <div className="pt-4">
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Enter code"
-                  className={`flex-1 px-4 py-2.5 rounded-xl border-2 focus:outline-none transition-colors text-sm text-[#2D3436] placeholder:text-[#666666] ${
-                    discountError
-                      ? "border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100"
-                      : "border-[#E8E8E8] focus:border-[#00A896] focus:ring-4 focus:ring-[#00A896]/10"
-                  }`}
-                  value={discountCode}
-                  onChange={(event) => {
-                    setDiscountCode(event.target.value.toUpperCase());
-                    setDiscountError("");
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={handleApplyDiscount}
-                  disabled={loading || !discountCode.trim()}
-                  className={`px-6 py-2 rounded-lg font-medium transition-all ${
-                    loading || !discountCode.trim()
-                      ? "bg-stone-200 text-stone-500 cursor-not-allowed"
-                      : "bg-primary text-white hover:bg-primary/90"
-                  }`}
-                >
-                  {loading ? "Applying…" : "Apply"}
-                </button>
-              </div>
-              {discountError && (
-                <div className="flex items-start gap-2 p-3 bg-red-50 border-2 border-red-200 rounded-lg">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-800 flex-1">{discountError}</p>
-                </div>
-              )}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Enter code"
+                className={`flex-1 px-4 py-2.5 rounded-xl border-2 focus:outline-none transition-colors text-sm text-[#2D3436] placeholder:text-[#666666] ${
+                  discountError
+                    ? "border-[#FF6B6B] focus:border-[#FF6B6B]"
+                    : "border-[#E8E8E8] focus:border-[#00A896]"
+                }`}
+                value={discountCode}
+                onChange={(event) => {
+                  setDiscountCode(event.target.value.toUpperCase());
+                  setDiscountError("");
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleApplyDiscount}
+                disabled={loading || !discountCode.trim()}
+                className={`px-5 py-2.5 rounded-xl text-sm transition-colors ${
+                  loading || !discountCode.trim()
+                    ? "bg-[#E8E8E8] text-[#666666] cursor-not-allowed"
+                    : "bg-[#E8E8E8] text-[#2D3436] hover:bg-[#00A896] hover:text-white"
+                }`}
+              >
+                {loading ? "Applying…" : "Apply"}
+              </button>
             </div>
-          </div>
-
-          {appliedDiscount && (
-            <div className="mt-3 p-4 bg-emerald-50 border-2 border-emerald-500 rounded-lg">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <svg
-                      className="w-5 h-5 text-emerald-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="font-semibold text-emerald-800">
-                      Discount applied!
-                    </span>
-                  </div>
-                  <p className="text-stone-700">
-                    <span className="font-medium">Code:</span>{" "}
-                    {appliedDiscount.code}
-                  </p>
-                  <p className="text-stone-700">
-                    <span className="font-medium">Discount:</span>{" "}
-                    {appliedDiscount.percentage > 0
-                      ? `${appliedDiscount.percentage}% off`
-                      : `$${appliedDiscount.amount} off`}
-                  </p>
-                  {appliedDiscount.description && (
-                    <p className="text-stone-600 text-sm">
-                      {appliedDiscount.description}
+            {discountError && (
+              <div className="mt-2 flex items-start gap-2 p-3 bg-[#FFF5F3] border-2 border-[#FF6B6B] rounded-lg">
+                <AlertCircle className="w-5 h-5 text-[#FF6B6B] flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-[#FF6B6B] flex-1">{discountError}</p>
+              </div>
+            )}
+            {appliedDiscount && (
+              <div className="mt-3 p-4 bg-[#E0F5F3] border-2 border-[#00A896] rounded-lg">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Check className="w-5 h-5 text-[#00A896]" />
+                      <span className="font-semibold text-[#00A896]">
+                        Discount applied!
+                      </span>
+                    </div>
+                    <p className="text-[#2D3436]">
+                      <span className="font-medium">Code:</span>{" "}
+                      {appliedDiscount.code}
                     </p>
-                  )}
+                    <p className="text-[#2D3436]">
+                      <span className="font-medium">Discount:</span>{" "}
+                      {appliedDiscount.percentage > 0
+                        ? `${appliedDiscount.percentage}% off`
+                        : `$${appliedDiscount.amount} off`}
+                    </p>
+                    {appliedDiscount.description && (
+                      <p className="text-[#666666] text-sm">
+                        {appliedDiscount.description}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveDiscount}
+                    className="ml-4 text-[#FF6B6B] hover:text-[#FF5252] font-medium text-sm"
+                  >
+                    Remove
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleRemoveDiscount}
-                  className="ml-4 text-red-600 hover:text-red-800 font-medium text-sm"
-                >
-                  Remove
-                </button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </details>
       </motion.div>
 

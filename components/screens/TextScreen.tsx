@@ -54,7 +54,7 @@ const getYearsAgoDate = (years: number) => {
 
 const MINIMUM_SUPPORTED_AGE = 18;
 
-const TextScreen: React.FC<ScreenProps & { screen: TextScreenType }> = ({ screen, answers, updateAnswer, onSubmit, showBack, onBack, headerSize }) => {
+const TextScreen: React.FC<ScreenProps & { screen: TextScreenType }> = ({ screen, answers, updateAnswer, onSubmit, showBack, onBack, headerSize, onSignInClick }) => {
   const { id, title, help_text, placeholder, required, validation, mask, min_today, multiline } = screen;
   const storedValue = answers[id] || '';
   const [error, setError] = useState<string | undefined>(undefined);
@@ -309,6 +309,7 @@ const TextScreen: React.FC<ScreenProps & { screen: TextScreenType }> = ({ screen
               onBack={onBack}
               onNext={handleSubmit}
               isNextDisabled={!isComplete}
+              onSignInClick={onSignInClick}
               nextButtonType="submit"
             />
         </form>

@@ -6,7 +6,7 @@ import NavigationButtons from '../common/NavigationButtons';
 import { DateScreen as DateScreenType } from '../../types';
 import { Calendar } from 'lucide-react';
 
-const DateScreen: React.FC<ScreenProps & { screen: DateScreenType }> = ({ screen, answers, updateAnswer, onSubmit, showBack, onBack }) => {
+const DateScreen: React.FC<ScreenProps & { screen: DateScreenType }> = ({ screen, answers, updateAnswer, onSubmit, showBack, onBack, onSignInClick }) => {
   const { id, title, help_text, required, min_today } = screen;
   const value = answers[id] || '';
   const [displayValue, setDisplayValue] = useState('');
@@ -91,6 +91,7 @@ const DateScreen: React.FC<ScreenProps & { screen: DateScreenType }> = ({ screen
           onBack={onBack}
           onNext={onSubmit}
           isNextDisabled={!isComplete}
+          onSignInClick={onSignInClick}
           nextButtonType="submit"
         />
       </form>

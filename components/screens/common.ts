@@ -12,4 +12,5 @@ export interface ScreenProps {
   calculations?: Record<string, any>;
   defaultCondition?: string;
   showLoginLink?: boolean;
+  onSignInClick?: () => void; // Handler for sign-in link
 }
