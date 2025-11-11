@@ -263,14 +263,15 @@ const ImageWithFallback = ({
 const deriveMedicationIdentity = (entry: ConsultationMedicationEntry) => {
   const details = entry?.medication || {};
   const name =
-  (typeof (details as any).title === 'string' && (details as any).title.trim()) ||
-    (typeof (details as any).name === 'string' && (details as any).name.trim()) ||
+  (typeof (details as any).title === 'string' && (details as any).title.trim()) ??
+    'Medication';
+    const medication =
+  (typeof (details as any).name === 'string' && (details as any).name.trim()) ??
     'Medication';
   const id = (typeof (details as any).id === 'string' && (details as any).id.trim()) || name;
   const description = (typeof (details as any).description === 'string' && (details as any).description.trim()) || '';
   const imageUrl = (typeof (details as any).image_url === 'string' && (details as any).image_url.trim()) || null;
-
-  return { id, name, description, imageUrl, details };
+  return { id, name, medication, description, imageUrl, details };
 };
 
 const dedupePharmacies = (pharmacies: ConsultationMedicationPharmacy[] = []) => {
@@ -456,7 +457,7 @@ export default function MedicationChoiceScreen({
 
     if (selectedMedicationId !== identity.id) {
       setSelectedMedicationId('');
-      setSelectedMedicationName(identity.name);
+      setSelectedMedicationName(identity.medication)
       setSelectedPharmacyId('');
       setSelectedDose('');
     }
@@ -470,7 +471,7 @@ export default function MedicationChoiceScreen({
     const identity = deriveMedicationIdentity(entry);
 
     setSelectedMedicationId(identity.id);
-    setSelectedMedicationName(medicationName);
+    setSelectedMedicationName(identity.medication)
     setSelectedPharmacyId(pharmacy.id);
 
     updateAnswer('selected_medication_id', identity.id);
@@ -688,7 +689,7 @@ export default function MedicationChoiceScreen({
                       </div>
 
                       <AnimatePresence>
-                        {selectedPharmacyId && selectedMedicationId === medicationId && doseOptions.length > 0 && (
+                        {/* {selectedPharmacyId && selectedMedicationId === medicationId && doseOptions.length > 0 && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
@@ -746,7 +747,7 @@ export default function MedicationChoiceScreen({
                               </>
                             )}
                           </motion.div>
-                        )}
+                        )} */}
                       </AnimatePresence>
                     </div>
                   </motion.div>

@@ -144,14 +144,12 @@ function MockPaymentForm({
   onComplete,
   onBack,
   updateAnswer,
-  onProcessingChange,
 }: {
   selectedPlan: any;
   answers: Record<string, any>;
   onComplete: (accountData: any) => void;
   onBack: () => void;
   updateAnswer: (id: string, value: any) => void;
-  onProcessingChange?: (isProcessing: boolean) => void;
 }) {
   const getString = (value: unknown, fallback: string = ""): string =>
     typeof value === "string" ? value : fallback;
@@ -323,12 +321,9 @@ function MockPaymentForm({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsProcessing(true);
-    onProcessingChange?.(true);
 
     try {
       // If we have card details and a customer ID, add the card to Stripe
@@ -427,7 +422,6 @@ function MockPaymentForm({
                 "Failed to process payment method. Please try again.",
             });
             setIsProcessing(false);
-            onProcessingChange?.(false);
             return;
           }
         } else {
@@ -454,7 +448,6 @@ function MockPaymentForm({
       setErrors({ general: "An error occurred. Please try again." });
     } finally {
       setIsProcessing(false);
-      onProcessingChange?.(false);
     }
   };
 
@@ -554,24 +547,35 @@ function MockPaymentForm({
   const planName =
     selectedPlan?.name || answers["selected_plan_name"] || "Selected Plan";
   const planPrice =
-    selectedPlan?.invoice_amount || answers["selected_plan_price"] || 299;
-  const invoiceAmount = selectedPlan?.invoice_amount || answers["selected_plan_invoice_amount"] || 299;
-  
+    selectedPlan?.per_month_price || answers["selected_plan_price"];
+  const invoiceAmount =
+    selectedPlan?.invoice_amount ||
+    answers["selected_plan_invoice_amount"] ||
+    299;
+
   // Extract plan details for multi-month display
-  const planType = selectedPlan?.plan || answers["selected_plan_type"] || "month"; // 'month', '3-month', '12-month'
-  const billingFrequency = selectedPlan?.billingFrequency || "Billed every 4 weeks";
-  const savings = selectedPlan?.savings || appliedDiscount?.amount || answers["discount_amount"] || null;
-  const savingsPercent = selectedPlan?.savingsPercent || (savings && planPrice > 0 ? Math.round((savings / planPrice) * 100) : 0);
-  
+  const planType =
+    selectedPlan?.plan || answers["selected_plan_type"] || "month"; // 'month', '3-month', '12-month'
+  const billingFrequency =
+    selectedPlan?.billingFrequency || "Billed every 4 weeks";
+  const savings =
+    selectedPlan?.savings ||
+    appliedDiscount?.amount ||
+    answers["discount_amount"] ||
+    null;
+  const savingsPercent =
+    selectedPlan?.savingsPercent ||
+    (savings && planPrice > 0 ? Math.round((savings / planPrice) * 100) : 0);
+
   // Calculate total amounts based on plan type
   const getOrderTotals = () => {
-    if (planType === "3-month") {
+    if (planType === "3 month") {
       return {
         totalDue: planPrice * 3,
         billingCycle: "3 months",
         deliveries: 3,
       };
-    } else if (planType === "12-month") {
+    } else if (planType === "12 month") {
       return {
         totalDue: planPrice * 12,
         billingCycle: "annually",
@@ -585,7 +589,7 @@ function MockPaymentForm({
       deliveries: 1,
     };
   };
-  
+
   const orderTotals = getOrderTotals();
 
   // Determine CTA text and title based on user state
@@ -618,13 +622,13 @@ function MockPaymentForm({
               <Package className="w-5 h-5 text-[#00A896]" />
               <h3 className="text-[#2D3436]">{planName}</h3>
             </div>
-            <p className="text-sm text-[#666666] mb-2">
-              {selectedMedication}
-            </p>
+            <p className="text-sm text-[#666666] mb-2">{selectedMedication}</p>
             {savings && savings > 0 && (
               <div className="inline-flex items-center gap-1.5 bg-[#E0F5F3] text-[#00A896] px-2.5 py-1 rounded-full text-xs">
                 <TrendingDown className="w-3.5 h-3.5" />
-                <span>Save ${savings} ({savingsPercent}% off)</span>
+                <span>
+                  Save ${savings} ({savingsPercent}% off)
+                </span>
               </div>
             )}
           </div>
@@ -633,26 +637,11 @@ function MockPaymentForm({
               <span className="text-2xl">${planPrice}</span>
               <span className="text-sm text-[#666666]">/mo</span>
             </div>
-            {planType !== "month" && (
-              <p className="text-xs text-[#666666]">
-                ${orderTotals.totalDue} {orderTotals.billingCycle}
-              </p>
-            )}
           </div>
         </div>
 
         {/* Benefits */}
         <div className="space-y-3 mb-5">
-          <div className="flex items-start gap-3">
-            <div className="w-5 h-5 rounded-full bg-[#E0F5F3] flex items-center justify-center flex-shrink-0 mt-0.5">
-              <Check className="w-3 h-3 text-[#00A896]" />
-            </div>
-            <p className="text-sm text-[#2D3436]">
-              {orderTotals.deliveries === 1 
-                ? "Monthly delivery of medication" 
-                : `${orderTotals.deliveries} monthly deliveries included`}
-            </p>
-          </div>
           <div className="flex items-start gap-3">
             <div className="w-5 h-5 rounded-full bg-[#E0F5F3] flex items-center justify-center flex-shrink-0 mt-0.5">
               <Check className="w-3 h-3 text-[#00A896]" />
@@ -663,13 +652,17 @@ function MockPaymentForm({
             <div className="w-5 h-5 rounded-full bg-[#E0F5F3] flex items-center justify-center flex-shrink-0 mt-0.5">
               <Check className="w-3 h-3 text-[#00A896]" />
             </div>
-            <p className="text-sm text-[#2D3436]">Ongoing provider support & dosage adjustments</p>
+            <p className="text-sm text-[#2D3436]">
+              Ongoing provider support & dosage adjustments
+            </p>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-5 h-5 rounded-full bg-[#E0F5F3] flex items-center justify-center flex-shrink-0 mt-0.5">
               <Check className="w-3 h-3 text-[#00A896]" />
             </div>
-            <p className="text-sm text-[#2D3436]">Cancel anytime, no long-term commitment</p>
+            <p className="text-sm text-[#2D3436]">
+              Cancel anytime, no long-term commitment
+            </p>
           </div>
         </div>
 
@@ -678,11 +671,17 @@ function MockPaymentForm({
           {planType !== "month" ? (
             <>
               <div className="flex items-baseline justify-between">
-                <span className="text-sm text-[#666666]">{planName} ({planType})</span>
-                <span className="text-[#2D3436]">${planPrice}/mo × {orderTotals.deliveries}</span>
+                <span className="text-sm text-[#666666]">
+                  {planName} ({planType})
+                </span>
+                <span className="text-[#2D3436]">
+                  ${planPrice}/mo × {orderTotals.deliveries}
+                </span>
               </div>
               <div className="flex items-baseline justify-between">
-                <span className="text-sm text-[#666666]">Billed {orderTotals.billingCycle}</span>
+                <span className="text-sm text-[#666666]">
+                  Billed {orderTotals.billingCycle}
+                </span>
                 <span className="text-[#2D3436]">${orderTotals.totalDue}</span>
               </div>
               {savings && savings > 0 && (
@@ -694,10 +693,16 @@ function MockPaymentForm({
             </>
           ) : (
             <div className="flex items-baseline justify-between">
-              <span className="text-sm text-[#666666]">Monthly subscription</span>
+              <span className="text-sm text-[#666666]">
+                Monthly subscription
+              </span>
               <span className="text-[#2D3436]">${planPrice}</span>
             </div>
           )}
+          <div className="flex items-baseline justify-between pt-3 border-t border-[#E8E8E8]">
+            <span className="text-sm text-[#666666]">Total </span>
+            <span className="text-xl text-[#00A896]">${invoiceAmount}</span>
+          </div>
           <div className="flex items-baseline justify-between pt-3 border-t border-[#E8E8E8]">
             <span className="text-sm text-[#666666]">Due today</span>
             <span className="text-xl text-[#00A896]">$0</span>
@@ -707,21 +712,29 @@ function MockPaymentForm({
         {/* Important Notice */}
         <div className="mt-5 pt-5 border-t border-[#E8E8E8]">
           <p className="text-xs text-[#666666] leading-relaxed">
-            You'll be charged {planType !== "month" ? `$${orderTotals.totalDue} ${orderTotals.billingCycle}` : `$${planPrice} monthly`} once prescribed. You won't be charged if a provider determines that our program isn't right for you.
+            You'll be charged ${planPrice} once prescribed. You won't be charged
+            if a provider determines that our program isn't right for you.
           </p>
         </div>
 
         {/* Discount Code Section */}
         <details className="group pt-5 border-t border-[#E8E8E8]">
           <summary className="flex items-center justify-between cursor-pointer list-none">
-            <span className="text-sm text-[#2D3436]">Have a discount code?</span>
-            <svg 
-              className="w-5 h-5 text-[#666666] transition-transform group-open:rotate-180" 
-              fill="none" 
-              viewBox="0 0 24 24" 
+            <span className="text-sm text-[#2D3436]">
+              Have a discount code?
+            </span>
+            <svg
+              className="w-5 h-5 text-[#666666] transition-transform group-open:rotate-180"
+              fill="none"
+              viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </summary>
           <div className="pt-4">
@@ -1169,9 +1182,9 @@ function MockPaymentForm({
         layout="grouped"
       />
 
-      {/* <p className="text-xs text-center text-neutral-500 mt-4">
+      <p className="text-xs text-center text-neutral-500 mt-4">
         🔒 This is a demo form - no actual payment will be processed
-      </p> */}
+      </p>
     </form>
   );
 }
@@ -1188,90 +1201,77 @@ export default function AccountCreationScreen({
 }: ScreenProps & { key?: string }) {
   const selectedPlan = answers["selected_plan_details"] || {};
   const selectedMedication = answers["selected_medication"] || "Medication";
-  const [isProcessing, setIsProcessing] = useState(false);
 
   return (
-    <>
-      {isProcessing ? (
-        <div className="w-full text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#00A896]"></div>
-          <p className="mt-4 text-neutral-600">Processing...</p>
-        </div>
-      ) : (
-        <div className="min-h-screen bg-[#fef8f2] flex justify-center p-4 sm:p-6 pt-5 sm:pt-7 relative">
-          {/* Full-page spinner overlay */}
-          <div className="w-full max-w-3xl">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
+    <div className="min-h-screen bg-[#fef8f2] flex justify-center p-4 sm:p-6 pt-5 sm:pt-7">
+      <div className="w-full max-w-3xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          {/* Title */}
+          <div className="mb-10 text-center">
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
+              className="text-2xl sm:text-3xl md:text-4xl text-neutral-900 mb-3 sm:mb-4 leading-snug tracking-tight"
+              style={{ letterSpacing: "-0.02em" }}
             >
-              {/* Title */}
-              <div className="mb-10 text-center">
-                <motion.h1
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-2xl sm:text-3xl md:text-4xl text-neutral-900 mb-3 sm:mb-4 leading-snug tracking-tight"
-                  style={{ letterSpacing: "-0.02em" }}
-                >
-                  You made it! 🎉
-                </motion.h1>
+              You made it! 🎉
+            </motion.h1>
 
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-base sm:text-lg text-neutral-600 leading-relaxed"
-                >
-                  We just need your shipping address and ID to complete your
-                  order.
-                </motion.p>
-              </div>
-
-              {/* Form */}
-              <MockPaymentForm
-                selectedPlan={selectedPlan}
-                answers={answers}
-                updateAnswer={updateAnswer}
-                onProcessingChange={setIsProcessing}
-                onComplete={(accountData) => {
-                  // Save account data to answers
-                  Object.entries(accountData).forEach(([key, value]) => {
-                    updateAnswer(`account_${key}`, value);
-                    if (key === "email" || key === "phone") {
-                      updateAnswer(key, value);
-                    }
-                    if (key === "state") {
-                      const stateCode = normalizeStateCode(value);
-                      updateAnswer("state", stateCode);
-                      updateAnswer("home_state", stateCode);
-                      updateAnswer("shipping_state", stateCode);
-                    }
-                    if (key === "city") {
-                      updateAnswer("city", value);
-                      updateAnswer("shipping_city", value);
-                    }
-                    if (key === "address") {
-                      updateAnswer("address_line1", value);
-                      updateAnswer("shipping_address", value);
-                    }
-                    if (key === "address2") {
-                      updateAnswer("address_line2", value);
-                      updateAnswer("shipping_address2", value);
-                      updateAnswer("unit", value);
-                    }
-                    if (key === "zipCode") {
-                      updateAnswer("zip_code", value);
-                      updateAnswer("shipping_zip", value);
-                    }
-                  });
-                  // Submit the form
-                  onSubmit(accountData);
-                }}
-                onBack={onBack}
-              />
-            </motion.div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-base sm:text-lg text-neutral-600 leading-relaxed"
+            >
+              We just need your shipping address and ID to complete your order.
+            </motion.p>
           </div>
-        </div>
-      )}
-    </>
+
+          {/* Form */}
+          <MockPaymentForm
+            selectedPlan={selectedPlan}
+            answers={answers}
+            updateAnswer={updateAnswer}
+            onComplete={(accountData) => {
+              // Save account data to answers
+              Object.entries(accountData).forEach(([key, value]) => {
+                updateAnswer(`account_${key}`, value);
+                if (key === "email" || key === "phone") {
+                  updateAnswer(key, value);
+                }
+                if (key === "state") {
+                  const stateCode = normalizeStateCode(value);
+                  updateAnswer("state", stateCode);
+                  updateAnswer("home_state", stateCode);
+                  updateAnswer("shipping_state", stateCode);
+                }
+                if (key === "city") {
+                  updateAnswer("city", value);
+                  updateAnswer("shipping_city", value);
+                }
+                if (key === "address") {
+                  updateAnswer("address_line1", value);
+                  updateAnswer("shipping_address", value);
+                }
+                if (key === "address2") {
+                  updateAnswer("address_line2", value);
+                  updateAnswer("shipping_address2", value);
+                  updateAnswer("unit", value);
+                }
+                if (key === "zipCode") {
+                  updateAnswer("zip_code", value);
+                  updateAnswer("shipping_zip", value);
+                }
+              });
+              // Submit the form
+              onSubmit(accountData);
+            }}
+            onBack={onBack}
+          />
+        </motion.div>
+      </div>
+    </div>
   );
 }

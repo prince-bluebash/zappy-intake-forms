@@ -348,7 +348,6 @@ const formConfig: FormConfig = {
               type: "error",
             },
           ],
-          auto_advance: true,
         },
         {
           id: "alcohol_use",
@@ -404,7 +403,6 @@ const formConfig: FormConfig = {
           progressive_display: {
             show_after_field: "tobacco_use",
           },
-          auto_advance: true,
         },
       ],
       next: "assessment.medical_conditions",
@@ -566,7 +564,6 @@ const formConfig: FormConfig = {
               type: "info",
             },
           ],
-          auto_advance: true,
         },
         {
           id: "glp1_safety",
@@ -611,7 +608,6 @@ const formConfig: FormConfig = {
               type: "error",
             },
           ],
-          auto_advance: true,
         },
       ],
       next: "assessment.medications_allergies",
