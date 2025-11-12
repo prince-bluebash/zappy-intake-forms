@@ -657,7 +657,7 @@ const formConfig: FormConfig = {
           go_to: "treatment.peptide_history",
         },
         {
-          else: "treatment.medication_preference",
+          else: "treatment.medication_choice",
         },
       ],
     },
@@ -673,16 +673,26 @@ const formConfig: FormConfig = {
       multiline: true,
       rows: 6,
       required: true,
-      next: "treatment.medication_preference",
+      next: "treatment.medication_choice",
     },
+    // {
+    //   id: "treatment.medication_preference",
+    //   type: "multi_select",
+    //   phase: "treatment",
+    //   title: "Which therapies interest you?",
+    //   help_text: "Select therapies to see availability for your state",
+    //   required: true,
+    //   next: "treatment.plan_selection",
+    // },
     {
-      id: "treatment.medication_preference",
-      type: "multi_select",
+      id: "treatment.medication_choice",
+      type: "composite",
       phase: "treatment",
-      title: "Which therapies interest you?",
-      help_text: "Select therapies to see availability for your state",
-      required: true,
+      title: "Choose your medication",
       next: "treatment.plan_selection",
+      fields: [],
+      // This is a special screen rendered by MedicationChoiceScreen component
+      // The component handles all the logic internally
     },
     {
       id: "treatment.plan_selection",

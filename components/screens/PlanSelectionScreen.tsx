@@ -144,7 +144,7 @@ export default function PlanSelectionScreen({ screen, answers, updateAnswer, onS
         {selectedMedicationName && (
           <div className="mb-6 p-4 bg-gradient-to-r from-[#00A896]/5 to-[#E0F5F3]/5 rounded-xl border border-[#00A896]/20">
             <p className="text-sm text-neutral-600">
-              Selected Medication: <span className="font-medium text-[#00A896]">{selectedMedicationName}</span>
+              Selected Medication: <span className="font-medium text-[#00A896]">{selectedMedication}</span>
             </p>
           </div>
         )}
