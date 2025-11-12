@@ -22,6 +22,7 @@ const SingleSelectScreen: React.FC<
   onBack,
   showLoginLink,
   onSignInClick,
+  defaultCondition,
 }) => {
   const {
     id,
@@ -186,7 +187,7 @@ const SingleSelectScreen: React.FC<
         <div className="mt-12 h-[52px]" />
       )}
 
-      {!showNavButtons && showBackOnly && (
+      {!showNavButtons && showBackOnly && defaultCondition !== "Strength Recovery" && defaultCondition !== "Anti-Aging" && (
         <div className="w-full flex justify-start mt-10">
           <Button
             variant="ghost"

@@ -143,7 +143,7 @@ const MedicationPreferenceScreen: React.FC<ScreenProps & { screen: any }> = ({
   showLoginLink,
 }) => {
   const [selectedMedication, setSelectedMedication] = useState<string | null>(
-    answers.selected_medication || null
+    answers.selected_medication_name || null
   );
   const [selectedDose, setSelectedDose] = useState<string | null>(
     answers.preferred_dose || null
@@ -154,10 +154,11 @@ const MedicationPreferenceScreen: React.FC<ScreenProps & { screen: any }> = ({
     setSelectedDose(null); // Reset dose when changing medication
     
     // Use the same variable names as MedicationOptionsScreen
-    const medicationName = medications.find((med) => med.id === medId)?.name || '';
-    updateAnswer('selected_medication', medicationName);
-    updateAnswer('medication_preferences', [medicationName]);
-    updateAnswer('treatment.medication_preference', medicationName);
+    const medicationData:any = medications.find((med) => med.id === medId) || '';
+    updateAnswer('selected_medication', medicationData?.name);
+    updateAnswer('selected_medication_name', medId);
+    updateAnswer('medication_preferences', [medicationData?.name]);
+    updateAnswer('treatment.medication_preference', medicationData?.name);
     updateAnswer('preferred_dose', null);
   };
 

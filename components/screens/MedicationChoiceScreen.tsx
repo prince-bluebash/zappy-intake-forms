@@ -297,7 +297,7 @@ export default function MedicationChoiceScreen({
   showLoginLink,
   calculations,
 }: ScreenProps) {
-  const stateCode = answers['home_state'] || answers['shipping_state'] || answers['state'] || '';
+  const stateCode = answers['home_state'] || answers['shipping_state'] || answers['state'] || 'CA';
   const serviceType =
     typeof (screen as any)?.service_type === 'string' ? (screen as any).service_type : defaultCondition || DEFAULT_SERVICE_TYPE;
 
