@@ -203,23 +203,30 @@ export const mapPatientDataToFormAnswers = (patientData: PatientData): {
     if (addr.street) {
       answers.address_line1 = addr.street;
       answers.shipping_address = addr.street;
+      answers['address.street'] = addr.street;
       apiPopulatedFields.add('address_line1');
       apiPopulatedFields.add('shipping_address');
+      apiPopulatedFields.add('address.street');
     }
     if (addr.unit) {
       answers.address_line2 = addr.unit;
+      answers['address.unit'] = addr.unit;
       apiPopulatedFields.add('address_line2');
+      apiPopulatedFields.add('address.unit');
     }
     if (addr.locality) {
       answers.city = addr.locality;
       answers.shipping_city = addr.locality;
+      answers['address.locality'] = addr.locality;
       apiPopulatedFields.add('city');
       apiPopulatedFields.add('shipping_city');
+      apiPopulatedFields.add('address.locality');
     }
     if (addr.region) {
-      answers.state = addr.region.toUpperCase();
-      answers.shipping_state = addr.region.toUpperCase();
-      answers.home_state = addr.region.toUpperCase();
+      const stateCode = addr.region.toUpperCase();
+      answers.state = stateCode;
+      answers.shipping_state = stateCode;
+      answers.home_state = stateCode;
       apiPopulatedFields.add('state');
       apiPopulatedFields.add('shipping_state');
       apiPopulatedFields.add('home_state');
@@ -227,8 +234,10 @@ export const mapPatientDataToFormAnswers = (patientData: PatientData): {
     if (addr.postalCode) {
       answers.zip_code = addr.postalCode;
       answers.shipping_zip = addr.postalCode;
+      answers['address.postalCode'] = addr.postalCode;
       apiPopulatedFields.add('zip_code');
       apiPopulatedFields.add('shipping_zip');
+      apiPopulatedFields.add('address.postalCode');
     }
     if (addr.country) {
       answers.country = addr.country.toUpperCase();
