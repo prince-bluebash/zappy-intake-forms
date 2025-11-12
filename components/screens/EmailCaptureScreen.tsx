@@ -100,7 +100,9 @@ const EmailCaptureScreen: React.FC<EmailCaptureScreenProps> = ({
     // Set new timeout for debounced API call
     debounceTimeoutRef.current = setTimeout(() => {
       updateAnswer("email", email);
-      checkIfAccountExists(email);
+      if(!showPasswordField && !showNameFields) {
+        checkIfAccountExists(email);
+      }
     }, 1000); // 1000ms debounce delay
 
     // Cleanup function
@@ -152,9 +154,9 @@ const EmailCaptureScreen: React.FC<EmailCaptureScreenProps> = ({
     // Reset states when email changes
     setAccountExists(false);
     setShowNameFields(false);
-    setShowPasswordField(false);
-    setIsSigningIn(false);
-    setManualSignIn(false);
+    // setShowPasswordField(false);
+    // setIsSigningIn(false);
+    // setManualSignIn(false);
     // API call is now handled by debounced useEffect
   };
 
