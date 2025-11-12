@@ -196,6 +196,8 @@ const EmailCaptureScreen: React.FC<EmailCaptureScreenProps> = ({
       setSignInLoading(true);
       const loginResponse: any = await apiClient.login({ email, password });
       const clientRecordId = loginResponse?.client_record?.id;
+      const address = loginResponse?.client_record?.address;
+      
       updateAnswer("email", email);
       updateAnswer("first_name", loginResponse?.client_record?.first_name);
       updateAnswer("last_name", loginResponse?.client_record?.last_name);
@@ -203,8 +205,34 @@ const EmailCaptureScreen: React.FC<EmailCaptureScreenProps> = ({
       updateAnswer("account_lastName", loginResponse?.client_record?.last_name);
       updateAnswer("account_email", email);
       updateAnswer("account_password", password);
-      updateAnswer("address", loginResponse?.client_record?.address);
+      updateAnswer("address", address);
       updateAnswer("mobile_phone", loginResponse?.client_record?.mobile_phone);
+      
+      // Populate address fields for strength-recovery form (account.* fields)
+      if (address) {
+        if (address.street) {
+          updateAnswer("address_line1", address.street);
+          updateAnswer("shipping_address", address.street);
+        }
+        if (address.unit) {
+          updateAnswer("address_line2", address.unit);
+        }
+        if (address.locality) {
+          updateAnswer("city", address.locality);
+          updateAnswer("shipping_city", address.locality);
+        }
+        if (address.region) {
+          const stateCode = address.region.toUpperCase();
+          updateAnswer("state", stateCode);
+          updateAnswer("shipping_state", stateCode);
+          updateAnswer("home_state", stateCode);
+        }
+        if (address.postalCode) {
+          updateAnswer("zip_code", address.postalCode);
+          updateAnswer("shipping_zip", address.postalCode);
+        }
+      }
+      
       if (clientRecordId) {
         updateAnswer("client_record_id", clientRecordId);
         try {

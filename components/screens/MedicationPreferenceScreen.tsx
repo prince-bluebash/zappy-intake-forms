@@ -154,9 +154,10 @@ const MedicationPreferenceScreen: React.FC<ScreenProps & { screen: any }> = ({
     setSelectedDose(null); // Reset dose when changing medication
     
     // Use the same variable names as MedicationOptionsScreen
-    updateAnswer('selected_medication', medId);
-    updateAnswer('medication_preferences', [medId]);
-    updateAnswer('treatment.medication_preference', medId);
+    const medicationName = medications.find((med) => med.id === medId)?.name || '';
+    updateAnswer('selected_medication', medicationName);
+    updateAnswer('medication_preferences', [medicationName]);
+    updateAnswer('treatment.medication_preference', medicationName);
     updateAnswer('preferred_dose', null);
   };
 
@@ -236,7 +237,7 @@ const MedicationPreferenceScreen: React.FC<ScreenProps & { screen: any }> = ({
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="mt-4 ml-9 space-y-4"
+                        className="mt-4 space-y-4"
                       >
                         <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
                           <div className="mb-4">

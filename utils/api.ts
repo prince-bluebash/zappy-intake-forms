@@ -335,8 +335,8 @@ export const apiClient = {
   },
 
   applyDiscount: (discountCode: string, planId: string) =>
-  get<DiscountResponse>(`/consultations/packages/${planId}/discounts/check?discount_code=${discountCode}`),
-  //get<DiscountResponse>(`/consultations/apply-discount?discount_code=${discountCode}`),
+    get<DiscountResponse>(`/consultations/packages/${planId}/discounts/check?discount_code=${discountCode}`),
+  // get<DiscountResponse>(`/consultations/apply-discount?discount_code=${discountCode}`),
 
   submitConsultation: (payload: Record<string, unknown>) =>
     post<SubmitConsultationResponse>('/consultations/submit', payload),

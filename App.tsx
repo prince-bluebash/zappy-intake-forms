@@ -945,6 +945,7 @@ const App: React.FC<AppProps> = ({ formConfig: providedFormConfig, defaultCondit
       goToScreen('capture.email');
     };
     
+    console.log(history);
     const commonProps = {
       screen,
       answers,
