@@ -462,7 +462,7 @@ function MockPaymentForm({
     setDiscountError("");
 
     try {
-      const response = await apiClient.applyDiscount(trimmedCode);
+      const response = await apiClient.applyDiscount(trimmedCode, selectedPlan?.id || "");
 
       if (
         response.message === "Invalid Discount Coupon Code" ||
@@ -1169,7 +1169,10 @@ function MockPaymentForm({
 
       <NavigationButtons
         showBack={true}
-        onBack={onBack}
+        onBack={() => {
+          handleRemoveDiscount();
+          onBack();
+        }}
         onNext={() => {
           const fakeEvent = {
             preventDefault: () => {},

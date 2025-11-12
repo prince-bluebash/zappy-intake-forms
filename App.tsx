@@ -201,6 +201,21 @@ const App: React.FC<AppProps> = ({ formConfig: providedFormConfig, defaultCondit
 
   const serviceSlug = useMemo(() => toServiceSlug(resolvedCondition), [resolvedCondition]);
   
+  // Custom back handler that clears discount when on discount-related screens
+  const handleBackWithDiscountClear = useCallback(() => {
+    // If we're on AccountCreationScreen or DiscountCodeScreen, clear discount before going back
+    if (currentScreen?.id === 'checkout.account_creation' || currentScreen?.id === 'logistics.discount_code') {
+      updateAnswer("discount_code_entered", "");
+      updateAnswer("discount_id", "");
+      updateAnswer("discount_code", "");
+      updateAnswer("discount_amount", 0);
+      updateAnswer("discount_percentage", 0);
+      updateAnswer("discount_description", "");
+      updateAnswer("discount_data", null);
+    }
+    goToPrev();
+  }, [currentScreen?.id, updateAnswer, goToPrev]);
+  
   // Calculate effective steps and progress accounting for all skipped steps
   const { effectiveTotalSteps, effectiveCurrentStep, effectiveProgress } = useMemo(() => {
     // If no current screen, return default values
@@ -1034,7 +1049,7 @@ const App: React.FC<AppProps> = ({ formConfig: providedFormConfig, defaultCondit
       <div className="relative w-full max-w-2xl mx-auto flex flex-grow flex-col">
         {/* Header with logo and back button */}
         <ScreenHeader
-          onBack={currentScreen.id === 'complete.assessment_review' ? undefined : (history.length > 0 ? goToPrev : undefined)}
+          onBack={currentScreen.id === 'complete.assessment_review' ? undefined : (history.length > 0 ? handleBackWithDiscountClear : undefined)}
           sectionLabel={getSectionLabel(currentScreen)}
           currentStep={effectiveCurrentStep}
           totalSteps={effectiveTotalSteps}

@@ -224,8 +224,8 @@ const getLowestStartingPrice = (packages: ConsultationMedicationPackage[] = []):
       ? pkg.invoice_amount_starter
       : null;
     
-    const regularPrice = typeof pkg.invoice_amount === 'number' && !Number.isNaN(pkg.invoice_amount)
-      ? pkg.invoice_amount
+    const regularPrice = typeof pkg.per_month_price === 'number' && !Number.isNaN(pkg.per_month_price)
+      ? pkg.per_month_price
       : null;
 
     // Use starter price if available, otherwise use regular price

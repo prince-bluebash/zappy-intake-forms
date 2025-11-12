@@ -49,6 +49,20 @@ const DiscountCodeScreen: React.FC<ScreenProps> = ({
     }
   };
 
+  // Handler to clear discount when going back
+  const handleBack = () => {
+    // Clear all discount-related fields
+    updateAnswer('discount_code_entered', '');
+    updateAnswer('discount_id', '');
+    updateAnswer('discount_code', '');
+    updateAnswer('discount_amount', 0);
+    updateAnswer('discount_percentage', 0);
+    updateAnswer('discount_description', '');
+    updateAnswer('discount_data', null);
+    // Call the original onBack handler
+    onBack();
+  };
+
   return (
     <ScreenLayout title={title} helpText={helpText}>
       <DiscountSelection
@@ -60,7 +74,7 @@ const DiscountCodeScreen: React.FC<ScreenProps> = ({
 
       <NavigationButtons
         showBack={showBack}
-        onBack={onBack}
+        onBack={handleBack}
         onNext={onSubmit}
       />
     </ScreenLayout>
