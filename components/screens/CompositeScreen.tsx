@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Check } from 'lucide-react';
 import { ScreenProps } from './common';
 import { CompositeScreen as CompositeScreenType, Field, FieldOrFieldGroup, SelectField, TextField, ConsentItemField, Link, MedicationDetailsGroupField, CheckboxField } from '../../types';
 import ScreenLayout from '../common/ScreenLayout';
@@ -129,7 +130,13 @@ const getYearsAgoDate = (years: number): Date => {
 };
 
 const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; apiPopulatedFields?: Set<string> }> = ({ screen, answers, updateAnswer, onSubmit, showBack, onBack, headerSize, calculations = {}, showLoginLink, onSignInClick, apiPopulatedFields = new Set() }) => {
-  const { title, help_text, fields, footer_note, validation, post_screen_note } = screen;
+  const { title, help_text, fields, footer_note, validation, post_screen_note, titleClassName, fieldLabelClassName, fieldSpacing } = screen;
+  
+  // Helper function to get label class for a field
+  const getLabelClassName = (field: Field, defaultClass: string = 'block mb-2 font-medium text-md text-neutral-800'): string => {
+    // Priority: field.labelClassName > screen.fieldLabelClassName > default
+    return field.labelClassName || fieldLabelClassName || defaultClass;
+  };
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const autoAdvanceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const pendingScrollToFieldRef = React.useRef<string | null>(null);
@@ -396,7 +403,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
                 href={link.url} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="text-primary font-semibold hover:underline" 
+                className="text-[#00A896] hover:underline font-medium" 
                 onClick={e => e.stopPropagation()}
               >
                 {link.label}
@@ -493,7 +500,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
             transition={{ duration: 0.3 }}
           >
             {field.label && (
-              <label htmlFor={field.id} className="block mb-2 font-medium text-md text-neutral-800">
+              <label htmlFor={field.id} className={getLabelClassName(field)}>
                 {field.label}
                 {field.required && <span className="text-[#FF7A59] ml-1">*</span>}
               </label>
@@ -541,6 +548,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
             type={field.type}
             inputMode={isDobField ? 'numeric' : undefined}
             label={field.label}
+            labelClassName={getLabelClassName(field)}
             help_text={field.help_text}
             placeholder={isDobField ? 'MM/DD/YYYY' : field.placeholder}
             value={storedValue || ''}
@@ -559,10 +567,12 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
           const heightInField = fields.find(f => !Array.isArray(f) && f.id === 'height_in') as Field;
           if (heightInField) {
             const heightInValue = answers['height_in'];
+            const isHeightRequired = field.required || heightInField.required;
             return (
               <div>
-                <label className="text-sm leading-none font-medium select-none mb-3 text-neutral-800">
+                <label className={getLabelClassName(field, 'text-sm leading-none font-medium select-none mb-3 text-neutral-800')}>
                   Height
+                  {isHeightRequired && <span className="text-[#FF7A59] ml-1">*</span>}
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -620,6 +630,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
             type="text"
             inputMode="numeric"
             label={field.label}
+            labelClassName={getLabelClassName(field, 'mb-2 text-neutral-800')}
             help_text={field.help_text}
             placeholder={field.placeholder}
             suffix={'suffix' in field ? field.suffix : undefined}
@@ -631,6 +642,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
             }}
             onBlur={() => handleBlur(field.id)}
             error={errors[field.id]}
+            required={field.required}
             disabled={apiPopulatedFields.has(field.id)}
           />
         );
@@ -640,8 +652,9 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
           return (
             <div>
               {field.label && (
-                <label className="block text-xl sm:text-2xl text-neutral-900 mb-3 font-medium">
+                <label className={getLabelClassName(field, 'block text-xl sm:text-2xl text-neutral-900 mb-3 font-medium')}>
                   {field.label}
+                  {field.required && <span className="text-[#FF7A59] ml-1">*</span>}
                 </label>
               )}
               {field.help_text && (
@@ -760,8 +773,9 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
         return (
             <div data-field-id={field.id}>
                 {field.label && (
-                    <label className={`block text-xl sm:text-2xl text-neutral-900 mb-3 font-medium ${field.labelClassName}`}>
+                    <label className={getLabelClassName(field, 'block text-xl sm:text-2xl text-neutral-900 mb-3 font-medium')}>
                         {field.label}
+                        {field.required && <span className="text-[#FF7A59] ml-1">*</span>}
                     </label>
                 )}
                 {field.help_text && (
@@ -930,6 +944,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
                 id={field.id}
                 label={field.label}
                 help_text={field.help_text}
+                required={field.required}
                 options={multiSelectField.options}
                 selectedValues={selectedValues}
                 onChange={handleMultiSelectChange}
@@ -1064,21 +1079,75 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
       }
       case 'consent_item': {
         const consentField = field as ConsentItemField;
+        const isChecked = !!value;
         return (
-          <div 
-            className={`p-5 bg-white rounded-2xl shadow-sm cursor-pointer transition-all ${
-              value ? 'border-2 border-[#00A896]' : 'border-2 border-neutral-200 hover:border-[#00A896]/50'
-            }`}
-            onClick={() => updateAnswer(consentField.id, !value)}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <Checkbox
-              id={consentField.id}
-              label={renderConsentLabel(consentField)}
-              checked={!!value}
-              onChange={(e) => updateAnswer(consentField.id, e.target.checked)}
-            />
-            {errors[field.id] && <p className="mt-2 text-sm font-medium text-[#FF6B6B]">{errors[field.id]}</p>}
-          </div>
+            <label 
+              className={`flex items-start gap-2.5 cursor-pointer group p-5 bg-white rounded-2xl shadow-sm transition-all ${
+                isChecked 
+                  ? 'border-2 border-[#00A896]' 
+                  : 'border-2 border-neutral-200 hover:border-[#00A896]/50'
+              }`}
+              onClick={() => updateAnswer(consentField.id, !value)}
+            >
+              <div className="relative mt-0.5 flex-shrink-0">
+                <input
+                  type="checkbox"
+                  id={consentField.id}
+                  checked={isChecked}
+                  onChange={(e) => updateAnswer(consentField.id, e.target.checked)}
+                  className="absolute opacity-0 w-4 h-4 cursor-pointer z-10 peer"
+                  aria-required={consentField.required}
+                />
+                <motion.div
+                  className={`w-4 h-4 rounded border-2 flex items-center justify-center cursor-pointer peer-focus-visible:ring-2 peer-focus-visible:ring-[#00A896] peer-focus-visible:ring-offset-2 ${
+                    isChecked
+                      ? "border-[#00A896] bg-[#00A896] shadow-md shadow-[#00A896]/30"
+                      : "border-[#E8E8E8] bg-white group-hover:border-[#00A896]/50 group-hover:shadow-sm"
+                  }`}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <AnimatePresence>
+                    {isChecked && (
+                      <motion.div
+                        initial={{ scale: 0, rotate: -180, opacity: 0 }}
+                        animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                        exit={{ scale: 0, rotate: 180, opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                      >
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+                {isChecked && (
+                  <motion.div
+                    className="absolute inset-0 rounded border-2 border-[#00A896] opacity-0 pointer-events-none ring-2 ring-[#00A896]/20"
+                    animate={{ opacity: [0, 0.3, 0], scale: [1, 1.3, 1.5] }}
+                    transition={{ duration: 0.4 }}
+                  />
+                )}
+              </div>
+              <span className="text-sm leading-relaxed text-neutral-600 group-hover:text-neutral-700 transition-colors flex-1">
+                {renderConsentLabel(consentField)}
+              </span>
+            </label>
+            {errors[field.id] && (
+              <motion.p 
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-2 text-sm font-medium text-[#FF6B6B]"
+              >
+                {errors[field.id]}
+              </motion.p>
+            )}
+          </motion.div>
         );
       }
       case 'checkbox': {
@@ -1117,7 +1186,7 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
   const showBmiGauge = screen.id === 'assess.body_measurements' && calculations && 'bmi' in calculations && calculations.bmi && isComplete;
 
   return (
-    <ScreenLayout title={title} helpText={help_text} headerSize={headerSize} showLoginLink={showLoginLink}>
+    <ScreenLayout title={title} helpText={help_text} headerSize={headerSize} titleClassName={titleClassName} showLoginLink={showLoginLink}>
       {screen.promo_banner && (
         <div className="mb-6 p-4 bg-teal-50 border-2 border-teal-200 rounded-xl flex items-center gap-3">
           <div className="flex-shrink-0 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center">
@@ -1128,11 +1197,11 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
           <span className="text-teal-800 font-medium">{screen.promo_banner.text}</span>
         </div>
       )}
-      <div className="space-y-6 text-left">
+      <div className={`${fieldSpacing || 'space-y-6'} text-left`}>
         {fields.map((fieldOrGroup, index) => {
           if (Array.isArray(fieldOrGroup)) {
             return (
-              <div key={`group-${index}`} className="space-y-6">
+              <div key={`group-${index}`} className={fieldSpacing || 'space-y-6'}>
                 {fieldOrGroup.map(field => {
                   const fieldContent = renderField(field);
                   return (

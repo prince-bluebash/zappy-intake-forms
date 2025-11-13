@@ -21,7 +21,7 @@ export const useFormLogic = (config: FormConfig, skipRules: SkipStepRule[] = DEF
 
     useEffect(() => {
     setCurrentScreenId(config.screens[0].id);
-    // setCurrentScreenId("treatment.medication_choice"??config.screens[0].id);
+    // setCurrentScreenId("review.summary"??config.screens[0].id);
     setAnswers({});
     answersRef.current = {};
     setCalculations({});

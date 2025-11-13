@@ -199,7 +199,7 @@ const RegionDropdown: React.FC<RegionDropdownProps> = ({
 
       {/* Always show the list */}
       {isOpen && filteredRegions.length > 0 && (
-        <div className="absolute top-11 left-0 w-full bg-white border-2 border-neutral-200 rounded-xl max-h-60 overflow-y-auto">
+        <div className="absolute top-11 left-0 w-full bg-white border-2 border-neutral-200 rounded-xl max-h-60 overflow-y-auto z-50">
           {filteredRegions.map((region, index) => {
             const isSelected = value === region.code;
             return (

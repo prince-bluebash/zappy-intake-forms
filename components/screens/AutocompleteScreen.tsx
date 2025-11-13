@@ -20,6 +20,7 @@ const AutocompleteScreen: React.FC<
   showBack,
   onBack,
   showLoginLink,
+  onSignInClick,
 }) => {
   const {
     id,
@@ -109,6 +110,7 @@ const AutocompleteScreen: React.FC<
           onBack={onBack}
           onNext={onSubmit}
           isNextDisabled={!stateValue || isStateRestricted}
+          onSignInClick={onSignInClick}
         />
       </ScreenLayout>
     );

@@ -276,6 +276,10 @@ export interface CompositeScreen extends BaseScreen {
   fields: FieldOrFieldGroup[];
   footer_note?: string;
   post_screen_note?: string;
+  // Styling options
+  titleClassName?: string;
+  fieldLabelClassName?: string; // Default label class for all fields in this screen
+  fieldSpacing?: string; // Custom spacing between fields (e.g., 'space-y-4', 'space-y-6')
   validation?: CompositeScreenValidation;
   safety_critical?: boolean;
 }

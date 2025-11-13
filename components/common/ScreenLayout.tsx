@@ -6,6 +6,7 @@ interface ScreenLayoutProps {
   title?: string;
   helpText?: string;
   headerSize?: string;
+  titleClassName?: string; // Custom CSS classes for title
   children?: ReactNode;
   showHeader?: boolean;
   showLoginLink?: boolean; // For compatibility
@@ -23,6 +24,7 @@ export default function ScreenLayout({
   title, 
   helpText, 
   headerSize, 
+  titleClassName,
   children, 
   showHeader = true,
   progress,
@@ -34,7 +36,8 @@ export default function ScreenLayout({
   showBack,
   onBack
 }: ScreenLayoutProps) {
-  const titleSize = headerSize === 'large' ? 'text-3xl sm:text-4xl md:text-5xl' : 'text-2xl sm:text-3xl md:text-4xl';
+  const defaultTitleSize = headerSize === 'large' ? 'text-3xl sm:text-4xl md:text-5xl' : 'text-2xl sm:text-3xl md:text-4xl';
+  const titleSize = titleClassName || defaultTitleSize;
   
   return (
     <div className="w-full">
