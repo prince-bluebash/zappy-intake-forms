@@ -8,6 +8,7 @@ interface CheckboxGroupProps {
   id: string;
   label?: string;
   help_text?: string;
+  required?: boolean;
   options: Option[];
   selectedValues: string[];
   onChange: (values: string[]) => void;
@@ -22,6 +23,7 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
   id,
   label,
   help_text,
+  required,
   options,
   selectedValues,
   onChange,
@@ -74,7 +76,10 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
     return (
       <div>
         {label && (
-          <Label className="text-xl sm:text-2xl text-neutral-900">{label}</Label>
+          <Label className="text-xl sm:text-2xl text-neutral-900">
+            {label}
+            {required && <span className="text-[#FF7A59] ml-1">*</span>}
+          </Label>
         )}
         {help_text && (
           <p className="text-sm leading-relaxed text-neutral-600 mt-2 mb-4 flex items-start gap-2">
@@ -139,7 +144,10 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
   return (
     <div>
       {label && (
-        <Label className="mb-3 text-xl sm:text-2xl text-neutral-900">{label}</Label>
+        <Label className="mb-3 text-xl sm:text-2xl text-neutral-900">
+          {label}
+          {required && <span className="text-[#FF7A59] ml-1">*</span>}
+        </Label>
       )}
       {help_text && (
         <p className="text-sm leading-relaxed text-neutral-600 mb-4 flex items-start gap-2">

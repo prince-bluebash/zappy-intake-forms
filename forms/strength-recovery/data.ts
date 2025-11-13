@@ -170,6 +170,8 @@ const formConfig: FormConfig = {
               max: 8,
               error: "Enter height between 3-8 feet",
             },
+            labelClassName:
+              "block text-lg leading-none font-medium select-none mb-2 text-neutral-900",
           },
           {
             id: "height_in",
@@ -184,21 +186,25 @@ const formConfig: FormConfig = {
               max: 11,
               error: "Enter inches between 0-11",
             },
+            labelClassName:
+              "block text-lg leading-none font-medium select-none mb-2 text-neutral-900",
           },
-        ],
-        {
-          id: "weight",
-          type: "number",
-          label: "Current weight (lb)",
-          min: 80,
-          max: 500,
-          required: true,
-          validation: {
+          {
+            id: "weight",
+            type: "number",
+            label: "Current weight (lb)",
             min: 80,
             max: 500,
-            error: "Enter weight between 80-500 lbs",
+            required: true,
+            validation: {
+              min: 80,
+              max: 500,
+              error: "Enter weight between 80-500 lbs",
+            },
+            labelClassName:
+              "block text-lg leading-none font-medium select-none mb-2 text-neutral-900",
           },
-        },
+        ],
         {
           id: "activity_level",
           type: "single_select",
@@ -789,33 +795,34 @@ const formConfig: FormConfig = {
           id: "city",
           type: "text",
           label: "City",
+          placeholder: "New York",
           required: true,
           validation: {
             pattern: "^[a-zA-Z\\s\\-']{2,50}$",
             error: "Enter a valid city",
           },
         },
-        [
-          {
-            id: "state",
-            type: "single_select",
-            label: "State",
-            required: true,
-            options: [],
+        {
+          id: "state",
+          type: "single_select",
+          label: "State",
+          required: true,
+          options: [],
+          labelClassName:
+            "text-sm leading-none font-medium select-none mb-2 text-neutral-800",
+        },
+        {
+          id: "zip_code",
+          type: "text",
+          label: "ZIP",
+          placeholder: "12345",
+          mask: "#####",
+          required: true,
+          validation: {
+            pattern: "^\\d{5}$",
+            error: "Enter a valid 5-digit ZIP",
           },
-          {
-            id: "zip_code",
-            type: "text",
-            label: "ZIP",
-            placeholder: "12345",
-            mask: "#####",
-            required: true,
-            validation: {
-              pattern: "^\\d{5}$",
-              error: "Enter a valid 5-digit ZIP",
-            },
-          },
-        ],
+        },
       ],
       next: "logistics.create_password",
     },

@@ -5,13 +5,14 @@ import { Label } from './label';
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   id: string;
   label?: string;
+  labelClassName?: string; // Custom CSS classes for label
   help_text?: string;
   error?: string;
   suffix?: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ id, label, help_text, error, suffix, type = 'text', ...props }, ref) => {
+  ({ id, label, labelClassName, help_text, error, suffix, type = 'text', ...props }, ref) => {
     const isPasswordField = type === 'password';
     const [showPassword, setShowPassword] = useState(false);
     const inputType = isPasswordField ? (showPassword ? 'text' : 'password') : type;
@@ -20,7 +21,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <Label htmlFor={id} className="mb-2 text-neutral-800">
+          <Label htmlFor={id} className={labelClassName || "mb-2 text-neutral-800"}>
             {label}
             {props.required && <span className="text-[#FF6B6B] ml-1">*</span>}
           </Label>
