@@ -107,7 +107,7 @@ export default function PlanSelectionOnly({
         
         // Filter to only show starter packages if user has not tried GLP-1 before
         if (glp1HasTried === 'no') {
-          fetchedPlans = fetchedPlans.filter((plan) => plan.starter_package === true);
+          fetchedPlans = fetchedPlans.filter((plan) => plan.starter_package === true || plan.per_month_price !== null);
         }
         
         setPlans(fetchedPlans);
