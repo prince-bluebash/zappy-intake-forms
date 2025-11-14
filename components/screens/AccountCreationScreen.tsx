@@ -239,6 +239,45 @@ function MockPaymentForm({
   const userEmail = getString(answers.email || answers.account_email);
   const userName = getString(answers.first_name || answers.account_firstName);
 
+  // Auto-apply discount from selected plan if available
+  useEffect(() => {
+    // Check if we already have a discount applied (don't override user's manual discount)
+    if (appliedDiscount || discountCode) {
+      return;
+    }
+
+    // Check if selected plan has auto_applied_discount
+    const autoDiscount = selectedPlan?.auto_applied_discount;
+    
+    // Validate that auto_applied_discount exists, is not null, and is not an empty object
+    if (
+      autoDiscount &&
+      autoDiscount !== null &&
+      typeof autoDiscount === 'object' &&
+      Object.keys(autoDiscount).length > 0 &&
+      autoDiscount.discount &&
+      typeof autoDiscount.discount === 'object' &&
+      autoDiscount.discount.code &&
+      typeof autoDiscount.discount.code === 'string' &&
+      autoDiscount.discount.code.trim() !== '' &&
+      autoDiscount.is_auto_applied === true
+    ) {
+      const discount: Discount = autoDiscount.discount;
+      
+      // Apply the discount
+      setAppliedDiscount(discount);
+      setDiscountCode(discount.code);
+      
+      // Save discount data to answers
+      updateAnswer("discount_code_entered", discount.code);
+      updateAnswer("discount_id", discount.id);
+      updateAnswer("discount_code", discount.code);
+      updateAnswer("discount_amount", discount.amount);
+      updateAnswer("discount_description", discount.description || "");
+      updateAnswer("discount_data", discount);
+    }
+  }, [selectedPlan, appliedDiscount, discountCode, updateAnswer]);
+
   const handleIdPhotoChange = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {

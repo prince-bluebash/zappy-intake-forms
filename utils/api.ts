@@ -7,6 +7,18 @@ export interface Discount {
   description?: string;
 }
 
+export interface AutoAppliedDiscount {
+  id: string;
+  discount_id: string;
+  package_id: string;
+  is_auto_applied: boolean;
+  starts_at?: string;
+  ends_at?: string;
+  created_at?: string;
+  updated_at?: string;
+  discount: Discount;
+}
+
 export interface ConsultationMedicationDetails {
   id: string;
   name?: string;
@@ -91,6 +103,8 @@ export interface PackagePlan {
   offers?: string[];
   tags?: string[];
   popular?: boolean;
+  starter_package?: boolean;
+  auto_applied_discount?: AutoAppliedDiscount | null;
 }
 
 interface PackagesResponse extends Array<PackagePlan> {}
