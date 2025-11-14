@@ -131,6 +131,7 @@ export default function PlanSelectionScreen({ screen, answers, updateAnswer, onS
 
   const goalRequired = useMemo(() => requiresPlanGoal(selectedPlanDetails), [selectedPlanDetails]);
   const canContinue = Boolean(selectedPlanId && (!goalRequired || selectedPlanGoal));
+  const glp1HasTried = answers['glp1_has_tried'] || '';
 
   return (
     <motion.div
@@ -160,6 +161,7 @@ export default function PlanSelectionScreen({ screen, answers, updateAnswer, onS
             selectedPlanGoal={selectedPlanGoal}
             onPlanGoalChange={handlePlanGoalSelect}
             shouldShowGoalForPlan={requiresPlanGoal}
+            glp1HasTried={glp1HasTried}
           />
           {goalRequired && !selectedPlanGoal && (
             <p className="mt-3 text-sm font-medium text-red-500">

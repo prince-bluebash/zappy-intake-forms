@@ -20,6 +20,7 @@ interface PlanSelectionOnlyProps {
   selectedPlanGoal?: string;
   onPlanGoalChange?: (value: string) => void;
   shouldShowGoalForPlan?: (plan: PackagePlan) => boolean;
+  glp1HasTried?: string; // 'yes' or 'no' - if 'no', only show starter packages
 }
 
 // Helper to format currency values
@@ -79,6 +80,7 @@ export default function PlanSelectionOnly({
   selectedPlanGoal = "",
   onPlanGoalChange,
   shouldShowGoalForPlan,
+  glp1HasTried,
 }: PlanSelectionOnlyProps) {
   const [plans, setPlans] = useState<PackagePlan[]>([]);
   const [loading, setLoading] = useState(false);
@@ -101,7 +103,13 @@ export default function PlanSelectionOnly({
           medication,
           pharmacyName
         );
-        const fetchedPlans = packages || [];
+        let fetchedPlans = packages || [];
+        
+        // Filter to only show starter packages if user has not tried GLP-1 before
+        if (glp1HasTried === 'no') {
+          fetchedPlans = fetchedPlans.filter((plan) => plan.starter_package === true);
+        }
+        
         setPlans(fetchedPlans);
       } catch (fetchError) {
         console.error("Error fetching plans:", fetchError);
@@ -117,13 +125,23 @@ export default function PlanSelectionOnly({
     };
 
     fetchPlans();
-  }, [medication, state, serviceType, pharmacyName]);
+  }, [medication, state, serviceType, pharmacyName, glp1HasTried]);
 
   // Auto-select plan if only one plan is available and no plan is currently selected
+  // Also clear selection if currently selected plan is no longer in the filtered list
   useEffect(() => {
-    if (plans.length === 0 || loading) return;
+    if (loading) return;
 
     const activePlans = plans.filter((plan) => plan.is_active === true);
+    
+    // Clear selection if the currently selected plan is not in the filtered list
+    if (selectedPlanId && activePlans.length > 0) {
+      const isSelectedPlanAvailable = activePlans.some((plan) => plan.id === selectedPlanId);
+      if (!isSelectedPlanAvailable) {
+        onSelect('', null);
+      }
+    }
+    
     // Only auto-select if exactly one plan and no plan is currently selected
     if (activePlans.length === 1 && !selectedPlanId) {
       const singlePlan = activePlans[0];
