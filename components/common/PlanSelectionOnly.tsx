@@ -106,9 +106,9 @@ export default function PlanSelectionOnly({
         let fetchedPlans = packages || [];
         
         // Filter to only show starter packages if user has not tried GLP-1 before
-        if (glp1HasTried === 'no') {
-          fetchedPlans = fetchedPlans.filter((plan) => plan.starter_package === true);
-        }
+        // if (glp1HasTried === 'no') {
+        //   fetchedPlans = fetchedPlans.filter((plan) => plan.starter_package === true);
+        // }
         
         setPlans(fetchedPlans);
       } catch (fetchError) {
