@@ -785,12 +785,12 @@ const formConfig: FormConfig = {
       id: "treatment.glp1_experience",
       type: "composite",
       phase: "qualify",
-      title: "Medication History",
+      title: "Have you tried GLP-1 medications before?",
       fields: [
         {
           id: "glp1_has_tried",
           type: "single_select",
-          label: "Have you tried a GLP-1 medication before?",
+          label: "",
           options: [
             { value: "yes", label: "Yes" },
             { value: "no", label: "No" },

@@ -162,6 +162,7 @@ export default function PlanSelectionScreen({ screen, answers, updateAnswer, onS
             onPlanGoalChange={handlePlanGoalSelect}
             shouldShowGoalForPlan={requiresPlanGoal}
             glp1HasTried={glp1HasTried}
+            answers={answers}
           />
           {goalRequired && !selectedPlanGoal && (
             <p className="mt-3 text-sm font-medium text-red-500">

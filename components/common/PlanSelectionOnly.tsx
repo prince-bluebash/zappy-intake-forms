@@ -21,6 +21,7 @@ interface PlanSelectionOnlyProps {
   onPlanGoalChange?: (value: string) => void;
   shouldShowGoalForPlan?: (plan: PackagePlan) => boolean;
   glp1HasTried?: string; // 'yes' or 'no' - if 'no', only show starter packages
+  answers?: Record<string, any>; // Form answers to access medication history
 }
 
 // Helper to format currency values
@@ -53,6 +54,101 @@ const uniqueNonEmpty = (
   return result;
 };
 
+// Helper function to check if a medication's last taken time is less than 2 weeks
+const isMedicationLessThan2Weeks = (
+  medId: string,
+  answers: Record<string, any>
+): boolean => {
+  const currentlyTaking = answers[`${medId}_currently_taking`];
+  const lastTaken = answers[`${medId}_last_taken`];
+
+  if (!lastTaken) return false;
+
+  // Values that indicate <2 weeks for currently taking medications
+  const lessThan2WeeksCurrentlyTaking = [
+    'today',
+    'yesterday',
+    '2-3_days_ago',
+    '4-7_days_ago',
+    '1-2_weeks_ago'
+  ];
+
+  // Values that indicate <2 weeks for not currently taking medications
+  const lessThan2WeeksNotTaking = [
+    'within_last_week',
+    '1-2_weeks_ago'
+  ];
+
+  if (currentlyTaking === 'yes') {
+    return lessThan2WeeksCurrentlyTaking.includes(lastTaken);
+  } else {
+    return lessThan2WeeksNotTaking.includes(lastTaken);
+  }
+};
+
+// Helper function to check if a medication's last taken time is greater than 2 weeks
+const isMedicationGreaterThan2Weeks = (
+  medId: string,
+  answers: Record<string, any>
+): boolean => {
+  const currentlyTaking = answers[`${medId}_currently_taking`];
+  const lastTaken = answers[`${medId}_last_taken`];
+
+  if (!lastTaken) return false;
+
+  // Values that indicate >2 weeks for currently taking medications
+  const greaterThan2WeeksCurrentlyTaking = [
+    '2-4_weeks_ago',
+    '1-3_months_ago',
+    '3-6_months_ago',
+    'more_than_6_months'
+  ];
+
+  // Values that indicate >2 weeks for not currently taking medications
+  const greaterThan2WeeksNotTaking = [
+    '2-4_weeks_ago',
+    '1-3_months_ago',
+    '3-6_months_ago',
+    '6-12_months_ago',
+    'more_than_1_year'
+  ];
+
+  if (currentlyTaking === 'yes') {
+    return greaterThan2WeeksCurrentlyTaking.includes(lastTaken);
+  } else {
+    return greaterThan2WeeksNotTaking.includes(lastTaken);
+  }
+};
+
+// Get all medication IDs that the user has tried
+const getTriedMedicationIds = (answers: Record<string, any>): string[] => {
+  const medicationIds = [
+    'wegovy',
+    'ozempic',
+    'semaglutide_compound',
+    'zepbound',
+    'mounjaro',
+    'tirzepatide_compound',
+    'saxenda',
+    'victoza'
+  ];
+
+  const triedMedications: string[] = [];
+  
+  medicationIds.forEach((medId) => {
+    if (answers[`used_${medId}`]) {
+      triedMedications.push(medId);
+    }
+  });
+
+  // Check for "other" medication
+  if (answers['used_other']) {
+    triedMedications.push('other');
+  }
+
+  return triedMedications;
+};
+
 const PlanImage = ({ src, alt }: { src?: string | null; alt: string }) => (
   <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-visible border border-white/60 shadow-sm flex-shrink-0 bg-white">
     <div className="w-full h-full rounded-xl overflow-hidden">
@@ -81,6 +177,7 @@ export default function PlanSelectionOnly({
   onPlanGoalChange,
   shouldShowGoalForPlan,
   glp1HasTried,
+  answers = {},
 }: PlanSelectionOnlyProps) {
   const [plans, setPlans] = useState<PackagePlan[]>([]);
   const [loading, setLoading] = useState(false);
@@ -105,9 +202,78 @@ export default function PlanSelectionOnly({
         );
         let fetchedPlans = packages || [];
         
-        // Filter to only show starter packages if user has not tried GLP-1 before
+        // Filter plans based on GLP-1 experience
         if (glp1HasTried === 'no') {
-          fetchedPlans = fetchedPlans.filter((plan) => plan.starter_package === true || plan.per_month_price !== null);
+          // If user has not tried GLP-1 before, only show starter packages and month-to-month
+          console.log('Filtering to only show starter packages', fetchedPlans);
+          fetchedPlans = fetchedPlans.filter((plan) => plan.starter_package === true || plan?.plan?.toLowerCase() === "month to month");
+        } else if (glp1HasTried === 'yes') {
+          // If user has tried GLP-1 before, check medication history
+          const triedMedicationIds = getTriedMedicationIds(answers);
+          
+          if (triedMedicationIds.length > 0) {
+            // Filter to only medications that have last_taken data
+            const medicationsWithData = triedMedicationIds.filter((medId) => {
+              if (medId === 'other') {
+                return !!answers['other_last_taken'];
+              }
+              return !!answers[`${medId}_last_taken`];
+            });
+            
+            if (medicationsWithData.length > 0) {
+              // Check if ANY medication is <2 weeks
+              const hasAnyLessThan2Weeks = medicationsWithData.some((medId) => {
+                if (medId === 'other') {
+                  // Handle "other" medication separately
+                  const otherCurrentlyTaking = answers['other_currently_taking'];
+                  const otherLastTaken = answers['other_last_taken'];
+                  if (!otherLastTaken) return false;
+                  
+                  const lessThan2WeeksCurrentlyTaking = ['today', 'yesterday', '2-3_days_ago', '4-7_days_ago', '1-2_weeks_ago'];
+                  const lessThan2WeeksNotTaking = ['within_last_week', '1-2_weeks_ago'];
+                  
+                  if (otherCurrentlyTaking === 'yes') {
+                    return lessThan2WeeksCurrentlyTaking.includes(otherLastTaken);
+                  } else {
+                    return lessThan2WeeksNotTaking.includes(otherLastTaken);
+                  }
+                }
+                return isMedicationLessThan2Weeks(medId, answers);
+              });
+              
+              // Check if ALL medications (with data) are >2 weeks
+              const allGreaterThan2Weeks = medicationsWithData.every((medId) => {
+                if (medId === 'other') {
+                  // Handle "other" medication separately
+                  const otherCurrentlyTaking = answers['other_currently_taking'];
+                  const otherLastTaken = answers['other_last_taken'];
+                  if (!otherLastTaken) return false;
+                  
+                  const greaterThan2WeeksCurrentlyTaking = ['2-4_weeks_ago', '1-3_months_ago', '3-6_months_ago', 'more_than_6_months'];
+                  const greaterThan2WeeksNotTaking = ['2-4_weeks_ago', '1-3_months_ago', '3-6_months_ago', '6-12_months_ago', 'more_than_1_year'];
+                  
+                  if (otherCurrentlyTaking === 'yes') {
+                    return greaterThan2WeeksCurrentlyTaking.includes(otherLastTaken);
+                  } else {
+                    return greaterThan2WeeksNotTaking.includes(otherLastTaken);
+                  }
+                }
+                return isMedicationGreaterThan2Weeks(medId, answers);
+              });
+              
+              if (hasAnyLessThan2Weeks) {
+                // If ANY medication is <2 weeks: show monthly and regular plans
+                console.log('Any medication <2 weeks: showing monthly and regular plans', fetchedPlans);
+                // Don't filter - show all plans (monthly and regular)
+              } else if (allGreaterThan2Weeks) {
+                // If ALL medications are >2 weeks: show monthly and starter plans (same as 'no')
+                console.log('All medications >2 weeks: showing monthly and starter plans', fetchedPlans);
+                fetchedPlans = fetchedPlans.filter((plan) => plan.starter_package === true || plan?.plan?.toLowerCase() === "month to month");
+              }
+              // If neither condition is met, show all plans
+            }
+            // If no medications have last_taken data, show all plans
+          }
         }
         
         setPlans(fetchedPlans);
@@ -125,7 +291,7 @@ export default function PlanSelectionOnly({
     };
 
     fetchPlans();
-  }, [medication, state, serviceType, pharmacyName, glp1HasTried]);
+  }, [medication, state, serviceType, pharmacyName, glp1HasTried, answers]);
 
   // Auto-select plan if only one plan is available and no plan is currently selected
   // Also clear selection if currently selected plan is no longer in the filtered list

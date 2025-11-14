@@ -1204,13 +1204,13 @@ const CompositeScreen: React.FC<ScreenProps & { screen: CompositeScreenType; api
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-[#FFF5F3] border-l-4 border-[#F25B5B] rounded-r-lg p-5 text-left max-w-3xl mx-auto mb-6"
+          className="bg-[#FFF5F3] border border-[#F25B5B] rounded-r-lg p-5 text-left max-w-3xl mx-auto mb-6"
         >
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-[#F25B5B] flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm text-[#2D3436] leading-relaxed">
-                <span className="font-semibold text-[#F25B5B]">First-time patients:</span> Federal regulations and medical safety protocols require all new GLP-1 patients to begin treatment at <span className="font-semibold">2.5mg weekly</span>. This allows your provider to monitor your response and adjust dosing appropriately over time, minimizing potential side effects.
+                <span className="font-semibold text-[#F25B5B]">IMPORTANT For First-time patients:</span> Medical safety protocols require all new GLP-1 patients to begin treatment at <span className="font-semibold">the lowest recommended dose</span>. This allows your provider to monitor your response and adjust dosing appropriately over time, minimizing potential side effects.
               </p>
               <p className="text-sm text-[#2D3436] leading-relaxed mt-3">
                 Our physicians can <span className="font-semibold">only prescribe higher doses</span> to patients who are actively continuing existing GLP-1 treatment.

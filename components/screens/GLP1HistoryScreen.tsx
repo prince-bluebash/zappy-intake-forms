@@ -410,6 +410,24 @@ const GLP1HistoryScreen: React.FC<ScreenProps & { screen: any }> = ({
       helpText="Select each medication and provide details about your experience"
       showLoginLink={showLoginLink}
     >
+      <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-[#FFF5F3] border border-[#F25B5B] rounded-r-lg p-5 text-left max-w-3xl mx-auto mb-6"
+        >
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-[#F25B5B] flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm text-[#2D3436] leading-relaxed">
+                <span className="font-semibold text-[#F25B5B]">Please note:</span> If it's been <span className="font-semibold">more than 2 weeks</span> since your last dose, we'll need to <span className="font-semibold">restart you at the lowest dosage</span> for your safety and comfort.
+              </p>
+              <p className="text-sm text-[#2D3436] leading-relaxed mt-3">
+              <span className="font-semibold">Here's why:</span> After 14+ days, <span className="font-semibold">your body loses its tolerance</span> to the medication and needs time to readjust. Starting at a higher dose could cause unnecessary nausea and discomfort—and we want to avoid that.
+              </p>
+            </div>
+          </div>
+        </motion.div>
       <div className="space-y-6">
         {(selectedMedications.length > 0 || otherMedication.selected) && (
           <motion.div
